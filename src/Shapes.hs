@@ -7,7 +7,8 @@ module Shapes
     moveP,
     moveS,
     addV,
-    subtractV
+    subtractV,
+    getPointOnLine
     -- rotate
 ) where 
 
@@ -29,3 +30,7 @@ module Shapes
     moveS :: Shape -> Vector -> Shape
     moveS (Sphere (Point xa ya za) r) (Vector xb yb zb) = 
         Sphere (Point (xa+xb) (ya+yb) (za+zb)) r
+
+    getPointOnLine :: Line -> Float -> Point
+    getPointOnLine (Line (Point xp yp zp) (Vector xv yv zv)) t = 
+        Point (xp+xv*t) (yp+yv*t) (yp+yv*t)

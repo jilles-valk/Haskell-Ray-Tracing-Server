@@ -7,7 +7,8 @@ module Main where
     main :: IO ()
     main = do
       defaultMain (testGroup "Our Shapes Tests" 
-        [movePointTest, addVectorsTest, subtractVectorTest, moveSphereTest])
+        [movePointTest, addVectorsTest, subtractVectorTest, moveSphereTest, 
+            getPointOnLineTest])
     
     movePointTest :: TestTree
     movePointTest = testCase "Testing movePointTest"
@@ -32,3 +33,9 @@ module Main where
         (assertEqual "Move 1 2 3 by 1 2 3"  
             (Sphere (Point 2 4 6) 1) 
             (moveS (Sphere (Point 1 2 3) 1)  (Vector 1 2 3)))
+
+    getPointOnLineTest :: TestTree
+    getPointOnLineTest = testCase "Testing getPointOnLineTest"
+        (assertEqual "Get point at 1 from 0" 
+            (Point 1 1 1)
+            (getPointOnLine (Line (Point 0 0 0) (Vector 1 1 1)) 1))
