@@ -1,0 +1,18 @@
+#mainheader {
+    margin: auto;
+    text-align: center;
+}
+
+#controls{
+    position: fixed;
+    bottom: 0;
+    width: 100vw;
+}
+
+#move {
+    text-align: center;
+}
+
+#rotate {
+    text-align: center;
+}
