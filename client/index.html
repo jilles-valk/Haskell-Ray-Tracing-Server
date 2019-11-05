@@ -8,7 +8,6 @@
     <title>Sogyo Adventure</title>
     <meta name="description" content="Interface for Haskell ray-tracer">
     <link rel="stylesheet" href="index.css">
-    <script src="index.js"></script>
 </head>
 
 <body>
@@ -16,26 +15,18 @@
     <header id="mainheader">
         Haskell Ray-Tracer
     </header>
+    <canvas id="display" width="1280px" height="720px">
+        
+    </canvas>
     <div id="controls">
-        <div id="move">
-            Move
-            <button>
-                Left
-            </button>
-            <button>
-                Right
-            </button>
-        </div>
-        <div id="rotate">
-            Rotate
-            <button>
-                Left
-            </button>
-            <button>
-                Right
+        <div id="sceneInput">
+            Input scene objects:
+            <textarea id="sceneText" name="Text1" cols="100" rows="5">sphere 0 0 0</textarea>
+            <button id="renderButton">
+                Render
             </button>
         </div>
     </div>
 </body>
-
+<script src="index.js"></script>
 </html>

@@ -2,7 +2,12 @@
     margin: auto;
     text-align: center;
 }
-
+#display {
+    position: fixed;
+    left: 15vw;;
+    width: 70vw;
+    text-align: center;
+}
 #controls{
     position: fixed;
     bottom: 0;
