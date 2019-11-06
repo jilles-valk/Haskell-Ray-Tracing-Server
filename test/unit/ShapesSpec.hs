@@ -41,12 +41,28 @@ module ShapesSpec where
                 `shouldBe` 
                 (getPointOnLine (Line (Point 0 0 0) (Vector 1 1 1)) 1)
 
+        describe "dot" $ do
+            it "Dot of 1 0 0 and 0 1 0" $
+                (dot (Vector 1 0 0) (Vector 0 1 0)) 
+                `shouldBe`
+                (0)
 
-
-    -- getPointOnLineTest :: TestTree
-    -- getPointOnLineTest = testCase "Testing getPointOnLineTest"
-    --     (assertEqual "Get point at 1 from 0" 
-    --         (Point 1 1 1)
-    --         (getPointOnLine (Line (Point 0 0 0) (Vector 1 1 1)) 1))
-
-    
+        describe "intersections" $ do
+            let sphere = Sphere (Point 0 0 0) 1
+            let otherSphere = Sphere (Point 1 0 0) 2
+            it "Intersect throught centre" $
+                (intersections  (Line (Point 0 0 (-5)) (Vector 0 0 1)) sphere)
+                `shouldBe`
+                ([4.0, 6.0])
+            it "Intersect at radius" $
+                (intersections  (Line (Point 1 0 (-5)) (Vector 0 0 1)) sphere)
+                `shouldBe`
+                ([5.0, 5.0])
+            it "Intersect at radius other sphere" $
+                (intersections  (Line (Point 3 0 (-5)) (Vector 0 0 1)) otherSphere)
+                `shouldBe`
+                ([5.0, 5.0])
+            it "No intersection" $
+                (intersections  (Line (Point 1 3 (-5)) (Vector 0 0 1)) sphere)
+                `shouldBe`
+                ([])

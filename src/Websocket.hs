@@ -5,17 +5,19 @@ module Websocket where
     import Control.Monad (forever)
     import Data.Typeable
 
+    startSocket :: WS.PendingConnection -> IO b
     startSocket pending = do
         conn <- WS.acceptRequest pending
-        
-        img  <- BL.readFile "img.jpg"
-        
-        WS.sendBinaryData conn img
-
         listenForScene conn
 
+    listenForScene :: WS.Connection -> IO b
     listenForScene conn = forever $ do
         msg <- WS.receiveData conn :: IO BL.ByteString
         putStrLn $ show msg
-        print (typeOf msg)
-        -- WS.sendTextData conn $ msg
+        print $ typeOf msg
+        sendImage conn
+
+    sendImage :: WS.Connection -> IO ()
+    sendImage conn = do 
+        img  <- BL.readFile "img.jpg"
+        WS.sendBinaryData conn img

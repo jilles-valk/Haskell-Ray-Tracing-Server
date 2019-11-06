@@ -11,7 +11,6 @@ ws.onmessage = function (event) {
     img.onload = function(){
         ctx.drawImage(img, 0, 0)
       }
-    // ws.send("From web app")
 }
 
 tellServerToRender = function () {
