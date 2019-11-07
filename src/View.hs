@@ -8,9 +8,9 @@ module View
     
     data View = View Point Vector Vector Integer Integer Float Float
 
-    generateLines :: View -> [Line]
+    generateLines :: View -> [[Line]]
     generateLines (View (Point xp yp zp) (Vector xv yv zv) (Vector xUp yUp zUp) hPixels vPixels fieldOfView aspectRatio)
-        | fieldOfView == 0 = [Line centerPoint (Vector xv yv zv)]
+        | fieldOfView == 0 = [[Line centerPoint (Vector xv yv zv)]]
         | otherwise = theLines
         where
             centerPoint = Point xp yp zp
@@ -28,9 +28,9 @@ module View
             rightLine = Line topRight (Vector (-xUp) (-yUp) (-zUp))
             viewPoint = getPointOnLine (Line centerPoint (Vector (-xv) (-yv) (-zv))) 1.0
 
-            theLines = [lineFromPoints viewPoint (getPointOnLine (lineFromPoints 
-                (getPointOnLine leftLine y) (getPointOnLine rightLine y)) x) |
-                y <- [0.0.. fromInteger (vPixels - 1)], x <- [0.0.. fromInteger (hPixels - 1)]]
+            theLines = [[lineFromPoints viewPoint (getPointOnLine (lineFromPoints 
+                (getPointOnLine leftLine ((y*h)/(fromInteger hPixels))) (getPointOnLine rightLine ((y*h)/(fromInteger hPixels)))) ((x*w)/(fromInteger vPixels)) ) |
+                x <- [0.0.. fromInteger (hPixels - 1)]] | y <- [0.0.. fromInteger (vPixels - 1)]]
 
 
     -- data ViewPoint = Point Float Float Float deriving (Eq, Show)

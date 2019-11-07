@@ -13,3 +13,7 @@ module RenderSpec where
                 length (render "1") > 1
                 `shouldBe` 
                 True
+            it "render scene" $
+                render "1"
+                `shouldBe` 
+                [[0, 1, 0]]
