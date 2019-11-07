@@ -11,7 +11,9 @@ module Shapes
     subtractV,
     getPointOnLine,
     dot,
-    intersections
+    rotateV,
+    intersections,
+    lineFromPoints
     -- rotate
 ) where 
 
@@ -34,16 +36,32 @@ module Shapes
     subtractV :: Vector -> Vector -> Vector
     subtractV (Vector xa ya za) (Vector xb yb zb) = Vector (xa-xb) (ya-yb) (za-zb)
 
+    rotateV :: Vector -> Vector -> Float-> Vector
+    rotateV v k theta=
+        (v `timesV` cos(theta)) `addV` ((k `crossV` v) `timesV` sin(theta)) `addV`
+            (k `timesV` ((k `dot` v) * (1 - cos(theta))))
+
+    dot :: Vector -> Vector -> Float
+    dot (Vector xa ya za) (Vector xb yb zb) = (xa*xb) + (ya*yb) + (za*zb)
+
+    timesV :: Vector -> Float -> Vector
+    timesV (Vector x y z) s = Vector (x*s) (y*s) (z*s)
+
+    crossV :: Vector -> Vector -> Vector
+    crossV (Vector xa ya za) (Vector xb yb zb) = 
+        Vector (ya*zb - za*yb) (-(xa*zb - za*xb)) (xa*yb - ya*xb)
+
     moveS :: Shape -> Vector -> Shape
     moveS (Sphere (Point xa ya za) r) (Vector xb yb zb) = 
         Sphere (Point (xa+xb) (ya+yb) (za+zb)) r
 
     getPointOnLine :: Line -> Float -> Point
     getPointOnLine (Line (Point xp yp zp) (Vector xv yv zv)) t = 
-        Point (xp+xv*t) (yp+yv*t) (yp+yv*t)
+        Point (xp+xv*t) (yp+yv*t) (zp+zv*t)
 
-    dot :: Vector -> Vector -> Float
-    dot (Vector xa ya za) (Vector xb yb zb) = (xa*xb) + (ya*yb) + (za*zb)
+    lineFromPoints :: Point -> Point -> Line
+    lineFromPoints (Point xa ya za) (Point xb yb zb) = 
+        Line (Point xa ya za) (toUnitVector ((Vector xb yb zb) `subtractV` (Vector xa ya za)))
 
     intersections :: Line -> Shape -> [Float]
     intersections (Line (Point xp yp zp) vp) (Sphere (Point xs ys zs) r)

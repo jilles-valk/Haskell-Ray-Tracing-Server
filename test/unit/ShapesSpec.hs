@@ -40,6 +40,10 @@ module ShapesSpec where
                 (Point 1 1 1)
                 `shouldBe` 
                 (getPointOnLine (Line (Point 0 0 0) (Vector 1 1 1)) 1)
+            it "Get point at 1 from 0 0 -1" $
+                (getPointOnLine (Line (Point 0 0 0) (Vector 0 0 (-1))) 1)
+                `shouldBe` 
+                (Point 0 0 (-1))
 
         describe "dot" $ do
             it "Dot of 1 0 0 and 0 1 0" $

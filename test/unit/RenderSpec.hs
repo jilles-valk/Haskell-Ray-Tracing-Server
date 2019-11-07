@@ -5,7 +5,11 @@ module RenderSpec where
     spec :: Spec
     spec = do
         describe "render" $ do
-            it "move 1 2 3 by 1 2 3" $
-                1
+            it "render nothing" $
+                render ""
                 `shouldBe` 
-                0
+                [] 
+            it "render something" $
+                length (render "1") > 1
+                `shouldBe` 
+                True
