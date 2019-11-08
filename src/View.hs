@@ -29,7 +29,7 @@ module View
             viewPoint = getPointOnLine (Line centerPoint (Vector (-xv) (-yv) (-zv))) 1.0
 
             theLines = [[lineFromPoints viewPoint (getPointOnLine (lineFromPoints 
-                (getPointOnLine leftLine ((y*h)/(fromInteger hPixels))) (getPointOnLine rightLine ((y*h)/(fromInteger hPixels)))) ((x*w)/(fromInteger vPixels)) ) |
+                (getPointOnLine leftLine ((y*h)/(fromInteger (hPixels - 1)))) (getPointOnLine rightLine ((y*h)/(fromInteger (hPixels - 1))))) ((x*w)/(fromInteger (vPixels - 1))) ) |
                 x <- [0.0.. fromInteger (hPixels - 1)]] | y <- [0.0.. fromInteger (vPixels - 1)]]
 
 

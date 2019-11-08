@@ -13,25 +13,39 @@ module ViewSpec where
                (generateLines view33 !! 0 !! 0)
                `shouldBe`
                (Line (Point 0.0 0.0 1.0) (Vector (-0.5773501) 0.5773505 (-0.57735026)))
-            it "returns a line through the top right corner of the view" $
-               (generateLines view33 !! 0 !! 2)
-               `shouldBe`
-               (Line (Point 0.0 0.0 1.0) (Vector 0.57735044 0.5773502 (-0.57735026)))
-            it "returns a line through the bottom left corner of the view" $
-               (generateLines view33 !! 2 !! 0)
-               `shouldBe`
-               (Line (Point 0.0 0.0 1.0) (Vector (-0.5773502) (-0.5773502) (-0.5773504)))
-            it "returns a line through the bottom right corner of the view" $
-               (generateLines view33 !! 2 !! 2)
-               `shouldBe`
-               (Line (Point 0.0 0.0 1.0) (Vector 0.5773504 (-0.5773502) (-0.5773502)))
             it "returns a line through the top middle of the view" $
                (generateLines view33 !! 0 !! 1)
                `shouldBe`
                (Line (Point 0.0 0.0 1.0) (Vector 2.5288108e-7 0.7071068 (-0.7071067)))
+            it "returns a line through the top right corner of the view" $
+               (generateLines view33 !! 0 !! 2)
+               `shouldBe`
+               (Line (Point 0.0 0.0 1.0) (Vector 0.57735044 0.5773502 (-0.57735026)))
+            it "returns a line through the middle left of the view" $
+               (generateLines view33 !! 1 !! 0)
+               `shouldBe`
+               (Line (Point 0.0 0.0 1.0) (Vector (-0.70710665) 2.5288114e-7 (-0.7071069)))
             it "returns a line through the middle of the view" $
                (generateLines view33 !! 1 !! 1)
                `shouldBe`
                (Line (Point 0.0 0.0 1.0) (Vector 3.5762787e-7 1.4901156e-7 (-1.0)))
+            it "returns a line through the middle right of the view" $
+               (generateLines view33 !! 1 !! 2)
+               `shouldBe`
+               (Line (Point 0.0 0.0 1.0) (Vector 0.70710695 (-4.2146922e-8) (-0.70710665)))
+            it "returns a line through the bottom left corner of the view" $
+               (generateLines view33 !! 2 !! 0)
+               `shouldBe`
+               (Line (Point 0.0 0.0 1.0) (Vector (-0.5773502) (-0.5773502) (-0.5773504)))
+            it "returns a line through the bottom middle of the view" $
+               (generateLines view33 !! 2 !! 1)
+               `shouldBe`
+               (Line (Point 0.0 0.0 1.0) (Vector 2.528811e-7 (-0.7071067) (-0.7071068)))
+            it "returns a line through the bottom right corner of the view" $
+               (generateLines view33 !! 2 !! 2)
+               `shouldBe`
+               (Line (Point 0.0 0.0 1.0) (Vector 0.5773504 (-0.5773502) (-0.5773502)))
+            
+            
     
         

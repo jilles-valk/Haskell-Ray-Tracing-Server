@@ -4,6 +4,7 @@ module Websocket where
     import qualified Network.WebSockets.Connection   as WS
     import Control.Monad (forever)
     import Data.Typeable
+    import Render
 
     startSocket :: WS.PendingConnection -> IO b
     startSocket pending = do
@@ -19,5 +20,6 @@ module Websocket where
 
     sendImage :: WS.Connection -> IO ()
     sendImage conn = do 
+        render "1"
         img  <- BL.readFile "img.jpg"
         WS.sendBinaryData conn img
