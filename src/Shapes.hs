@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Shapes
 (
     Point(..),
@@ -16,12 +17,41 @@ module Shapes
     lineFromPoints
     -- rotate
 ) where 
+    import GHC.Generics
+    import Data.Aeson
+    import Data.Aeson.Types
 
-    data Point = Point Float Float Float deriving (Eq, Show)
-    data Vector = Vector Float Float Float deriving (Eq, Show)
-    data Line = Line Point Vector deriving (Eq, Show)
-    data Shape = Sphere Point Float deriving (Eq, Show)
+    data Point = Point {
+        x :: Float,
+        y :: Float,
+        z :: Float
+    } deriving (Eq, Show, Generic)
+    data Vector = Vector {
+        xv :: Float,
+        yv :: Float,
+        zv :: Float
+    } deriving (Eq, Show, Generic)
+    data Line = Line {
+        point :: Point,
+        vector :: Vector
+    } deriving (Eq, Show)
+    data Shape = Sphere {
+        center :: Point,
+        radius :: Float
+    } deriving (Eq, Show, Generic)
     -- and possibly more shapes
+    instance ToJSON Point where
+        toJSON = genericToJSON defaultOptions 
+    instance FromJSON Point where
+        parseJSON = genericParseJSON defaultOptions 
+    instance ToJSON Vector where
+        toJSON = genericToJSON defaultOptions 
+    instance FromJSON Vector where
+        parseJSON = genericParseJSON defaultOptions 
+    instance ToJSON Shape where
+        toJSON = genericToJSON defaultOptions
+    instance FromJSON Shape where
+        parseJSON = genericParseJSON defaultOptions 
 
     toUnitVector :: Vector -> Vector
     toUnitVector (Vector x y z) = Vector (x/magnitude) (y/magnitude) (z/magnitude)

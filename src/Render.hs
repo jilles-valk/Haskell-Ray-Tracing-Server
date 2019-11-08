@@ -1,28 +1,34 @@
 module Render 
 (
-    render
+    render,
+    colorAtPixel,
+    generatePixel
 )
 where 
     import Shapes
     import Data.Colour 
     import View
     import Codec.Picture
+    import Data.Aeson
+    import Data.Aeson.Types
 
-    render inputString 
-        | inputString == [] = writePng "img.png" image
-        | otherwise         = writePng "img.png" image
+    render inputJSON 
+        -- | inputString == _ = image
+        -- | otherwise         
+        = encodePng $ generateImage 
+        (\x y -> generatePixel (lines !! x !! y) sphere) 
+        (fromInteger hPixels) (fromInteger vPixels)
         where 
-            sphere = Sphere (Point 0 0 0) 1
-            hPixels = 30
-            vPixels = 30
-            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi) 1.0
+            sphere = parseObjects inputJSON
+            hPixels = 300
+            vPixels = 200
+            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi) (3/2)
             lines = generateLines view
-            -- image = [[colorAtPixel x y (lines !! (fromInteger x) !! (fromInteger y)) sphere| 
-            --     x <- [0.. (hPixels - 1)]] | y <- [0.. (vPixels - 1)]]
+            -- image = encodePng $ generateImage 
+            --     (\x y -> generatePixel x y (lines !! x !! y) sphere) 
+            --     (fromInteger vPixels) (fromInteger hPixels)
 
-            image = generateImage (\x y -> generatePixel ( x) ( y) lines sphere) (fromInteger vPixels) (fromInteger hPixels)
-
-    -- colorAtPixel :: Integer -> Integer -> Line -> Shape -> Integer
+    colorAtPixel :: Num p => Line -> Shape -> p
     colorAtPixel l s 
         | intersect == [] = 0
         | otherwise = colour
@@ -30,10 +36,16 @@ where
             intersect = intersections l s
             colour = 100;
 
-    -- generatePixel :: Int -> Int -> [[Line]] -> Shape -> PixelRGB8
-    generatePixel x y lines sphere = PixelRGB8 
-        ( (colorAtPixel (lines !! x !! y) sphere)) 
-        ( (colorAtPixel (lines !! x !! y) sphere)) 128
+    generatePixel :: Line -> Shape -> PixelRGB8
+    generatePixel line sphere = PixelRGB8 
+        ( (colorAtPixel line sphere)) 
+        ( (colorAtPixel line sphere)) 
+        128
+
+    parseObjects inputJSON = 
+        case decode inputJSON of
+            Just objects -> objects
+            Nothing -> Sphere (Point 0 0 0) 1
 
 
 

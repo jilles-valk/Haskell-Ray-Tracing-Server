@@ -16,10 +16,10 @@ module Websocket where
         msg <- WS.receiveData conn :: IO BL.ByteString
         putStrLn $ show msg
         print $ typeOf msg
-        sendImage conn
+        sendImage conn (render msg)
 
-    sendImage :: WS.Connection -> IO ()
-    sendImage conn = do 
-        render "1"
-        img  <- BL.readFile "img.jpg"
+    -- sendImage :: WS.Connection -> IO ()
+    sendImage conn img = do 
+        -- render "1"
+        -- img  <- BL.readFile "img.jpg"
         WS.sendBinaryData conn img
