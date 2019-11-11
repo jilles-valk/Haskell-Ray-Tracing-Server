@@ -33,3 +33,7 @@ module View
                 (getPointOnLine rightLine ((x*width)/(fromInteger (verPixels - 1))))) 
                 ((y*height)/(fromInteger (horPixels - 1))) ) |
                 x <- [0.0.. fromInteger (verPixels - 1)]] | y <- [0.0.. fromInteger (horPixels - 1)]]
+
+    -- generateLines2 directionLeft endRowPoint beginRowPoint (Line lastPoint _):acc
+    -- generateLines2 _ acc
+    --     | x `subtractV` end 

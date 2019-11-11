@@ -6,8 +6,8 @@ module ViewSpec where
     
     spec :: Spec
     spec = do
-        describe "test square view" $ do
-            let view33 = View (Point 0 0 0) (Vector 0 0 (-1)) (Vector 0 1 0) 3 3 (0.5*pi) 1.0
+         let view33 = View (Point 0 0 0) (Vector 0 0 (-1)) (Vector 0 1 0) 3 3 (0.5*pi) 1.0
+         describe "test square view" $ do   
             it "returns a line through the top left corner of the view" $
                (generateLines view33 !! 0 !! 0)
                `shouldBe`

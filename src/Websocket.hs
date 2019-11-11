@@ -1,5 +1,4 @@
 module Websocket where
-    import Data.Text as T
     import qualified Data.ByteString.Lazy as BL
     import qualified Network.WebSockets.Connection   as WS
     import Control.Monad (forever)
