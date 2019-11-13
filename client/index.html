@@ -16,14 +16,11 @@
     <header id="mainheader">
         Haskell Ray-Tracer
     </header>
-    
-    <!-- <canvas id="display" width="300px" height="200px">
-        
-    </canvas> -->
-    
+
     <div id="app">
-        <main-display id="display" v-bind:image="image"></main-display>
-        <controls id="controls" v-on:change-this-object="changeScene" v-bind:scene="scene"></controls>
+        <display id="display" v-bind:image="image" v-bind:test="test"></display>
+        <controls id="controls" v-on:change-this-object="changeObject" 
+            v-on:add-object="addObject" v-on:change-view="changeView" v-bind:scene="scene"></controls>
     </div>
 
     

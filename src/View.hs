@@ -1,12 +1,28 @@
+{-# LANGUAGE DeriveGeneric #-}
 module View 
 (
     View (..), 
     generateLines
 ) where 
+    import GHC.Generics
+    import Data.Aeson
+    import Data.Aeson.Types
     import Data.Colour
     import Shapes
     
-    data View = View Point Vector Vector Integer Integer Float Float
+    data View = View {
+        position ::Point,
+        forwardVector :: Vector,
+        upVector :: Vector,
+        horPixels :: Integer,
+        verPixels :: Integer,
+        fieldOfView :: Float,
+        aspectRatio :: Float
+     } deriving (Eq, Show, Generic)
+    instance ToJSON View where
+        toJSON = genericToJSON defaultOptions 
+    instance FromJSON View where
+        parseJSON = genericParseJSON defaultOptions 
 
     generateLines :: View -> [[Line]]
     generateLines (View (Point xp yp zp) (Vector xv yv zv) (Vector xUp yUp zUp) horPixels verPixels fieldOfView aspectRatio)

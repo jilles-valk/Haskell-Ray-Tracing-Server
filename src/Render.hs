@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 module Render 
 (
     render,
@@ -5,9 +6,14 @@ module Render
     makeViewTest,
     colorAtPixel,
     generatePixel,
-    getNearestIntersectingObject
+    getNearestIntersectingObject,
+    parseScene
 )
 where 
+    import qualified Data.ByteString.Lazy as BL
+    import GHC.Generics
+    import Data.Aeson
+    import Data.Aeson.Types
     import Shapes
     import Data.Colour 
     import View
@@ -16,18 +22,29 @@ where
     import Data.Aeson.Types
     import Data.Maybe
 
+    data Scene = Scene {
+        view :: View,
+        objects :: [Shape]
+     } deriving (Eq, Show, Generic)
+    instance ToJSON Scene where
+        toJSON = genericToJSON defaultOptions 
+    instance FromJSON Scene where
+        parseJSON = genericParseJSON defaultOptions 
+
     render inputJSON 
         -- | inputString == _ = image
         -- | otherwise         
         = encodePng $ generateImage 
-        (\x y -> generatePixel (lines !! x !! y) objects) 
+        (\x y -> generatePixel (lines !! x !! y) objectList) 
         (fromInteger hPixels) (fromInteger vPixels)
         where 
-            objects = parseObjects inputJSON
-            hPixels = 300
-            vPixels = 200
-            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi) (3/2)
-            lines = generateLines view
+            scene = parseScene inputJSON
+            objectList = objects scene
+            camera = view scene
+            hPixels = horPixels camera
+            vPixels = verPixels camera
+            -- view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi) (3/2)
+            lines = generateLines camera
             -- image = encodePng $ generateImage 
             --     (\x y -> generatePixel x y (lines !! x !! y) sphere) 
             --     (fromInteger vPixels) (fromInteger hPixels)
@@ -77,11 +94,11 @@ where
         where
             nearestIntersectingObject = getNearestIntersectingObject line objects
 
-
-    parseObjects inputJSON = 
+    parseScene :: BL.ByteString -> Scene
+    parseScene inputJSON = 
         case decode inputJSON of
-            Just objects -> objects
-            Nothing -> [Sphere (Point 0 0 0) 1]
+            Just scene -> scene
+            Nothing ->  (Scene (View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) 300 200 (0.5*pi) (3/2)) [(Sphere (Point 1 2 3) 1), (Sphere (Point 1 3 2) 2)])
 
     -- renderTest :: Int -> Image
     makeViewTest size = do 
