@@ -98,7 +98,22 @@ where
     parseScene inputJSON = 
         case decode inputJSON of
             Just scene -> scene
-            Nothing ->  (Scene (View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) 300 200 (0.5*pi) (3/2)) [(Sphere (Point 1 2 3) 1), (Sphere (Point 1 3 2) 2)])
+            Nothing ->  (Scene 
+                            (View 
+                                (Point 0 0 3) 
+                                (Vector 0 0 (-1)) 
+                                (Vector 0 1 0) 
+                                300 
+                                200 
+                                (0.5*pi) 
+                                (3/2)
+                            ) 
+                            [
+                                (Sphere 
+                                    (Point 1 2 3) 1), 
+                                (Sphere 
+                                    (Point 1 3 2) 2)
+                            ])
 
     -- renderTest :: Int -> Image
     makeViewTest size = do 
@@ -110,14 +125,11 @@ where
         -- | inputString == _ = image
         -- | otherwise         
         =  writePng "img1.png" $ generateImage 
-            (\x y -> generatePixel (lines !! x !! y) sphere) 
+            (\x y -> generatePixel (lines !! (x*y)) sphere) 
             (fromInteger hPixels) (fromInteger vPixels)
         where 
             sphere = [Sphere (Point 0 0 0) 1]
             hPixels = size
             vPixels = size
             view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi) (3/2)
-            lines = generateLines view
-
-
-
+            lines = generateLines2 view

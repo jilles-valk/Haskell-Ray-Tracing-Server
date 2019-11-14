@@ -18,9 +18,19 @@
     </header>
 
     <div id="app">
-        <display id="display" v-bind:image="image" v-bind:test="test"></display>
-        <controls id="controls" v-on:change-this-object="changeObject" 
-            v-on:add-object="addObject" v-on:change-view="changeView" v-bind:scene="scene"></controls>
+        <display id="display" 
+            v-bind:image="image" 
+            v-bind:test="test">
+        </display>
+        <controls id="controls" 
+            v-on:change-this-object="changeObject" 
+            v-on:remove-object="removeObject" 
+            v-on:add-object="addObject" 
+            v-on:change-view="changeView" 
+            v-on:change-view-orientation="changeViewOrientation"
+            v-on:change-view-fov="changeViewFOV"
+            v-bind:scene="scene">
+        </controls>
     </div>
 
     

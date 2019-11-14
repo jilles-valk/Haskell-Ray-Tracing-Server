@@ -26,24 +26,32 @@ var controls = Vue.extend({
       y:<input :id="index" class="y" type="number" step=".1" v-on:change="changeObject" :value="object.center.y"/>
       z:<input :id="index" class="z" type="number" step=".1" v-on:change="changeObject" :value="object.center.z"/>
       r:<input :id="index" class="r" type="number" step=".1" v-on:change="changeObject" :value="object.radius"/>
+      <button :id="index" class="remove" v-on:click="emitRemoveObject">Delete</button>
   </div>
 </div>
 <div>Add object
     <button v-on:click="addObject">Add sphere</button>
 </div>
-<div>Camera controlls
-<div>Position:
-x:<input id="positionInput" class="x" type="number" step=".1" v-on:change="emitChangeView" :value="scene.view.position.x"/>
-y:<input id="positionInput" class="y" type="number" step=".1" v-on:change="emitChangeView" :value="scene.view.position.y"/>
-z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitChangeView" :value="scene.view.position.z"/>
+<div id="camera">Camera controlls
+<div id="camera-pos">Position:
+x:<input id="positionInput" class="x" type="number" step=".1" v-on:change="emitChangeViewPosition" :value="scene.view.position.x.toFixed(2)"/>
+y:<input id="positionInput" class="y" type="number" step=".1" v-on:change="emitChangeViewPosition" :value="scene.view.position.y.toFixed(2)"/>
+z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitChangeViewPosition" :value="scene.view.position.z.toFixed(2)"/>
 </div>
-<div>Look:
-    <button>Left</button>
-    <button>Up</button>
-    <button>Down</button>
-    <button>Right</button>
-    <button>Roll Left</button>
-    <button>Roll Right</button>
+<div id="camera-orientation">Orientation: 
+  <div id="top-orientation-buttons">
+    <button id="rollLeft" v-on:click="emitChangeViewOrientation">Roll Left</button>
+    <button id="turnUp" v-on:click="emitChangeViewOrientation">Up</button>
+    <button id="rollRight" v-on:click="emitChangeViewOrientation">Roll Right</button>
+  </div>
+  <div id="bottom-orientation-buttons">
+    <button id="turnLeft" v-on:click="emitChangeViewOrientation">Left</button>
+    <button id="turnDown" v-on:click="emitChangeViewOrientation">Down</button>
+    <button id="turnRight" v-on:click="emitChangeViewOrientation">Right</button>
+  </div>
+  <div id="fieldOfView">
+    Field of view: <input id="fieldOfViewInput" class="fov" type="number" step="1" min="0" max="180"v-on:change="emitChangeViewFOV" :value="(scene.view.fieldOfView*180/Math.PI).toFixed(1)"/>
+  </div>
 </div>
 </div>
 </div>  
@@ -65,13 +73,29 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
     addObject: function() {
       this.$emit("add-object");
     },
-    emitChangeView: function(event) {
+    emitChangeViewPosition: function(event) {
       if (event){
         this.$emit("change-view", event.target.className, event.target.value);
       }
-    }
+    },
+    emitRemoveObject: function(event) {
+      if (event){
+        this.$emit("remove-object", event.target.id);
+      }
+    },
+    emitChangeViewOrientation: function(event) {
+      if (event){
+        this.$emit("change-view-orientation", event.target.id);
+      }
+    },
+    emitChangeViewFOV: function(event) {
+      if (event){
+        this.$emit("change-view-fov", event.target.value);
+      }
+    },
   }
 });
+
 
 const app = new Vue({
   el: "#app",
@@ -114,9 +138,7 @@ const app = new Vue({
       if (objectParameter == "r") {
         this.scene.objects[objectID].radius = parseFloat(parameterValue);
       } else {
-        this.scene.objects[objectID].center[objectParameter] = parseFloat(
-          parameterValue
-        );
+        this.scene.objects[objectID].center[objectParameter] = parseFloat(parameterValue);
       }
       this.sendScene();
     },
@@ -129,8 +151,93 @@ const app = new Vue({
       this.test = JSON.stringify(this.scene);
     },
     changeView(id, value){
-      this.scene.view.position[id] = value;
+      this.scene.view.position[id] = parseFloat(value);
+      this.sendScene();
+    },
+    removeObject(id) {
+      this.scene.objects.splice(id,1);
+      this.sendScene();
+    },
+    changeViewOrientation (command) {
+      let increment = 0.1*Math.PI;
+      let rightVector = 
+            rotate(this.scene.view.forwardVector, this.scene.view.upVector, 0.5*Math.PI);
+      switch (command) {
+        case "rollLeft":
+          this.scene.view.upVector = 
+            rotate(this.scene.view.upVector, this.scene.view.forwardVector, -increment);
+          break;
+        case "turnUp":
+            this.scene.view.forwardVector = 
+              rotate(this.scene.view.forwardVector, rightVector, -increment);
+            this.scene.view.upVector = 
+              rotate(this.scene.view.upVector, rightVector, -increment);
+        break;
+        case "rollRight":
+          this.scene.view.upVector = 
+            rotate(this.scene.view.upVector, this.scene.view.forwardVector, increment);
+          break;
+        case "turnLeft":
+          this.scene.view.forwardVector = 
+            rotate(this.scene.view.forwardVector, this.scene.view.upVector, increment);
+          break;
+        case "turnDown":
+          this.scene.view.forwardVector = 
+            rotate(this.scene.view.forwardVector, rightVector, increment);
+          this.scene.view.upVector = 
+              rotate(this.scene.view.upVector, rightVector, increment);
+          break;
+        case "turnRight":
+          this.scene.view.forwardVector = 
+            rotate(this.scene.view.forwardVector, this.scene.view.upVector, -increment);
+          break;
+      };
+      this.sendScene();
+    },
+    changeViewFOV (value) {
+      this.scene.view.fieldOfView = value*Math.PI/180;
       this.sendScene();
     }
   }
 });
+
+function rotate (v, k, theta) {
+  return (add(
+            times(v, Math.cos(theta)),
+            add(
+              times(
+                cross(k, v),
+                Math.sin(theta)
+                ),
+              times(
+                k,
+                dot(k,v) * (1 - Math.cos(theta))
+                )
+              )
+            )
+          );    
+}
+
+function cross (a, b) {
+  return {xv:(a.yv*b.zv - a.zv*b.yv), 
+          yv:(-(a.xv*b.zv - a.zv*b.xv)), 
+          zv: (a.xv*b.yv - a.yv*b.xv)};
+}
+
+function times (v, s) {
+  return {xv:(v.xv*s), 
+          yv:(v.yv*s), 
+          zv:(v.zv*s)};
+}
+
+function add (a, b) {
+  return {xv:(a.xv+b.xv), 
+          yv:(a.yv+b.yv), 
+          zv:(a.zv+b.zv)};
+}
+
+function dot (a, b) {
+  return ((a.xv*b.xv) + 
+          (a.yv*b.yv) + 
+          (a.zv*b.zv));
+}

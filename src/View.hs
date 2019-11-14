@@ -2,7 +2,9 @@
 module View 
 (
     View (..), 
-    generateLines
+    generateLines,
+    generateLines2,
+    generateLinesHelper
 ) where 
     import GHC.Generics
     import Data.Aeson
@@ -50,6 +52,34 @@ module View
                 ((y*height)/(fromInteger (horPixels - 1))) ) |
                 x <- [0.0.. fromInteger (verPixels - 1)]] | y <- [0.0.. fromInteger (horPixels - 1)]]
 
-    -- generateLines2 directionLeft endRowPoint beginRowPoint (Line lastPoint _):acc
-    -- generateLines2 _ acc
-    --     | x `subtractV` end 
+    generateLines2 :: View -> [Line]
+    generateLines2 (View centerPoint directionForward directionUp horPixels verPixels fieldOfView aspectRatio) = 
+        let viewPoint = centerPoint `moveP` (directionForward `timesV` (-1) )
+            viewPortWidth = 2*tan(fieldOfView/2)
+            viewPortHeight = viewPortWidth*((fromInteger verPixels)/(fromInteger horPixels))
+            directionLeftStep = (rotateV directionUp directionForward (-0.5*pi)) `timesV` (viewPortWidth/(fromInteger horPixels))
+            directionUpStep = directionUp `timesV` (viewPortHeight/(fromInteger verPixels))
+            startPoint = centerPoint 
+                `moveP` 
+                    ((directionLeftStep `timesV` (-0.5* (fromInteger horPixels)))
+                    `addV` 
+                    (directionUpStep `timesV` (-0.5*(fromInteger verPixels))))
+            firstLine = lineFromPoints viewPoint startPoint
+        in generateLinesHelper viewPoint directionLeftStep directionUpStep startPoint startPoint horPixels verPixels 1 [firstLine]
+
+    
+    generateLinesHelper :: Point -> Vector -> Vector -> Point -> Point -> Integer -> Integer -> Integer -> [Line] -> [Line]
+    generateLinesHelper viewPoint directionLeft directionUp lastPoint lastStartPoint horPixels verPixels 
+        numPixelsDone lines
+        | numPixelsDone == (horPixels * verPixels) = lines
+        | (numPixelsDone `mod` horPixels) == 0 = 
+            generateLinesHelper viewPoint directionLeft directionUp newLastStartPoint newLastStartPoint 
+            horPixels verPixels (numPixelsDone + 1) (nextRowLine:lines)
+        | otherwise = 
+            generateLinesHelper viewPoint directionLeft directionUp newLastPoint lastStartPoint 
+            horPixels verPixels (numPixelsDone + 1) (newLine:lines)
+        where
+            newLastPoint = lastPoint `moveP` directionLeft
+            newLine = lineFromPoints viewPoint newLastPoint
+            newLastStartPoint = lastStartPoint `moveP` directionUp
+            nextRowLine = lineFromPoints viewPoint newLastStartPoint

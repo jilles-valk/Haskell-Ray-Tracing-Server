@@ -12,6 +12,7 @@ module Shapes
     subtractV,
     getPointOnLine,
     dot,
+    timesV,
     rotateV,
     intersections,
     lineFromPoints
