@@ -13,9 +13,9 @@ module Websocket where
     listenForScene :: WS.Connection -> IO b
     listenForScene conn = forever $ do
         msg <- WS.receiveData conn :: IO BL.ByteString
-        putStrLn $ show msg
-        putStrLn $ show $ parseScene msg
-        print $ typeOf msg
+        -- putStrLn $ show msg
+        -- putStrLn $ show $ parseScene msg
+        -- print $ typeOf msg
         sendImage conn (render msg)
 
     -- sendImage :: WS.Connection -> IO ()

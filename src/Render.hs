@@ -51,13 +51,21 @@ where
         | isJust $ fst object = intensity
         | otherwise = 0
         where 
-            intensity = addIntensity 0 (getPointOnLine l $ head $ snd object) objects lightsources
+            pointOnObject = getPointOnLine l $ head $ snd object
+            intensityLightsourceAndLine = addIntensity 0 pointOnObject objects lightsources
+            normal = lineFromPoints (center $ fromJust $ fst object) pointOnObject
+            angleNormalCamera = acos( (direction normal) `dot` (direction l `timesV` (-1)))
+            angleNormalLightsource = acos( (direction normal) `dot` (direction $ snd intensityLightsourceAndLine))
+            anglesDifference = abs ((angleNormalCamera-angleNormalLightsource)/angleNormalCamera)
+            intensity = fst intensityLightsourceAndLine * 
+                (anglesDifference/(1 + anglesDifference))
+            
 
-    addIntensity :: Float -> Point -> [Shape] -> [Lightsource] -> Float
-    addIntensity accIntensity pointOnObject objects [] = accIntensity
+    addIntensity :: Float -> Point -> [Shape] -> [Lightsource] -> (Float, Line)
+    addIntensity accIntensity pointOnObject objects [] = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
     addIntensity accIntensity pointOnObject objects [justOneLightsource]
-        | blocked = accIntensity
-        | otherwise = newIntensity
+        | blocked = (accIntensity, objectToLightsource)
+        | otherwise = (newIntensity, objectToLightsource)
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location justOneLightsource
             blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objects
@@ -68,7 +76,8 @@ where
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location nextLightsource
             blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objects
-            newIntensity = accIntensity + intensity nextLightsource
+            invAccIntensity = accIntensity/(1-accIntensity)
+            newIntensity = invAccIntensity + intensity nextLightsource
 
     getNearestIntersectingObject :: Line -> [Shape] -> (Maybe Shape, [Float])
     getNearestIntersectingObject line [] = (Nothing, [])

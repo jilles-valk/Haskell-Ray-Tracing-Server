@@ -36,7 +36,7 @@ module Shapes
     } deriving (Eq, Show, Generic)
     data Line = Line {
         point :: Point,
-        vector :: Vector
+        direction :: Vector
     } deriving (Eq, Show)
     data Shape = Sphere {
         center :: Point,
@@ -117,3 +117,9 @@ module Shapes
             discriminant = b^2 - 4*a*c
             t1 = (-b - sqrt(discriminant))/(2*a)
             t2 = (-b + sqrt(discriminant))/(2*a)
+
+    getReflection :: Line -> Point -> Shape -> Line
+    getReflection line reflectionPoint sphere = 
+        let normal = lineFromPoints (center sphere) reflectionPoint
+
+        in Line (Point 1 2 3) (Vector 1 2 3)
