@@ -142,7 +142,8 @@ const app = new Vue({
   data: function() {
     return {
       image: undefined,
-      scene: { objects: [], 
+      scene: { objects: [],
+               lightsources: [{location:{x: -3, y: 0, z: 0}, intensity: 0.5}],
         view: { position: {x: 0, y:0, z:5}, forwardVector: {xv:0, yv:0, zv:-1}, 
           upVector: {xv:0, yv:1, zv:0}, horPixels:300, verPixels:200, fieldOfView: 0.25*Math.PI} },
       status: "not connected",

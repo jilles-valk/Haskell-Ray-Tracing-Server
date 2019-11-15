@@ -5,6 +5,7 @@ module Shapes
     Vector(..),
     Line(..),
     Shape(..),
+    Lightsource(..),
     moveP,
     toUnitVector,
     moveS,
@@ -21,6 +22,7 @@ module Shapes
     import GHC.Generics
     import Data.Aeson
     import Data.Aeson.Types
+    import Data.Colour.SRGB
 
     data Point = Point {
         x :: Float,
@@ -40,6 +42,10 @@ module Shapes
         center :: Point,
         radius :: Float
     } deriving (Eq, Show, Generic)
+    data Lightsource = Lightsource {
+        location :: Point,
+        intensity :: Float
+    } deriving (Eq, Show, Generic)
     -- and possibly more shapes
     instance ToJSON Point where
         toJSON = genericToJSON defaultOptions 
@@ -52,6 +58,10 @@ module Shapes
     instance ToJSON Shape where
         toJSON = genericToJSON defaultOptions
     instance FromJSON Shape where
+        parseJSON = genericParseJSON defaultOptions 
+    instance ToJSON Lightsource where
+        toJSON = genericToJSON defaultOptions
+    instance FromJSON Lightsource where
         parseJSON = genericParseJSON defaultOptions 
 
     toUnitVector :: Vector -> Vector
@@ -97,7 +107,8 @@ module Shapes
     intersections :: Line -> Shape -> [Float]
     intersections (Line (Point xp yp zp) vp) (Sphere (Point xs ys zs) r)
         | discriminant < 0  = []
-        | otherwise         = [t1, t2]
+        | t1 < t2           = [t1, t2]
+        | otherwise         = [t2, t1]
         where 
             sphereOriginRayOrigin = (Vector xp yp zp) `subtractV` (Vector xs ys zs)
             a = dot vp vp

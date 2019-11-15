@@ -15,7 +15,7 @@ where
     import Data.Aeson
     import Data.Aeson.Types
     import Shapes
-    import Data.Colour 
+    import Data.Colour.SRGB
     import View
     import Codec.Picture
     import Data.Aeson
@@ -24,7 +24,8 @@ where
 
     data Scene = Scene {
         view :: View,
-        objects :: [Shape]
+        objects :: [Shape],
+        lightsources :: [Lightsource]
      } deriving (Eq, Show, Generic)
     instance ToJSON Scene where
         toJSON = genericToJSON defaultOptions 
@@ -34,62 +35,83 @@ where
     render :: BL.ByteString -> BL.ByteString
     render inputJSON     
         = encodePng $ snd $ generateFoldImage 
-            (\deAcc x y -> generatePixel deAcc objectList) lines
+            (\deAcc x y -> generatePixel deAcc objectList lightsourceList) lines
             (fromInteger hPixels) (fromInteger vPixels)
         where 
             scene = parseScene inputJSON
             objectList = objects scene
+            lightsourceList = lightsources scene
             camera = view scene
             hPixels = horPixels camera
             vPixels = verPixels camera
             lines = generateLines camera
 
-    colorAtPixel :: Num p => Line -> Maybe Shape -> p
-    colorAtPixel l object 
-        | isJust object = 100
+    colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
+    colorAtPixel l object objects lightsources
+        | isJust $ fst object = intensity
         | otherwise = 0
+        where 
+            intensity = addIntensity 0 (getPointOnLine l $ head $ snd object) objects lightsources
 
-    getNearestIntersectingObject :: Line -> [Shape] -> Maybe Shape
-    getNearestIntersectingObject line [] = Nothing
+    addIntensity :: Float -> Point -> [Shape] -> [Lightsource] -> Float
+    addIntensity accIntensity pointOnObject objects [] = accIntensity
+    addIntensity accIntensity pointOnObject objects [justOneLightsource]
+        | blocked = accIntensity
+        | otherwise = newIntensity
+        where 
+            objectToLightsource = lineFromPoints pointOnObject $ location justOneLightsource
+            blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objects
+            newIntensity = accIntensity + intensity justOneLightsource
+    addIntensity accIntensity pointOnObject objects (nextLightsource:lightsources)
+        | blocked = addIntensity accIntensity pointOnObject objects lightsources
+        | otherwise = addIntensity newIntensity pointOnObject objects lightsources
+        where 
+            objectToLightsource = lineFromPoints pointOnObject $ location nextLightsource
+            blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objects
+            newIntensity = accIntensity + intensity nextLightsource
+
+    getNearestIntersectingObject :: Line -> [Shape] -> (Maybe Shape, [Float])
+    getNearestIntersectingObject line [] = (Nothing, [])
     getNearestIntersectingObject line [oneObject] 
-        | intersect == [] = Nothing
-        | head intersect > 0 || intersect !! 1 > 0 = Just oneObject
-        | otherwise = Nothing
+        | intersect == [] = (Nothing, [])
+        | head intersect > (-0.01) && intersect !! 1 > (-0.01) = (Just oneObject, intersect)
+        | otherwise = (Nothing, [])
         where 
             intersect = intersections line oneObject
     getNearestIntersectingObject line (firstObject:otherObjects) = 
-        getNearestIntersectingObjectHelper line otherObjects firstObject
+        getNearestIntersectingObjectHelper line otherObjects 
+        (firstObject, intersections line firstObject)
 
-    getNearestIntersectingObjectHelper :: Line -> [Shape] -> Shape -> Maybe Shape
+    getNearestIntersectingObjectHelper :: Line -> [Shape] -> (Shape, [Float]) -> (Maybe Shape, [Float])
     getNearestIntersectingObjectHelper line [oneObject] nearest = 
         getClosest line oneObject nearest
     getNearestIntersectingObjectHelper line (firstObject:otherObjects) nearest
-        | isJust closest = getNearestIntersectingObjectHelper line otherObjects $ fromJust closest
+        | isJust $ fst closest = getNearestIntersectingObjectHelper line otherObjects 
+            (fromJust $ fst closest, snd closest)
         | otherwise = getNearestIntersectingObjectHelper line otherObjects nearest
         where 
             closest = getClosest line firstObject nearest
 
-    getClosest :: Line -> Shape -> Shape -> Maybe Shape
+    getClosest :: Line -> Shape -> (Shape, [Float]) -> (Maybe Shape, [Float])
     getClosest line objectOne objectTwo
-        | intersectionsOne == [] && intersectionsTwo == [] = Nothing
-        | intersectionsOne == [] && isObjectTwoBeforeCamera = Just objectTwo
-        | intersectionsTwo == [] && isObjectOneBeforeCamera = Just objectOne
-        | oneCloser && isObjectOneBeforeCamera = Just objectOne
-        | isObjectTwoBeforeCamera = Just objectTwo
-        | otherwise = Nothing
+        | intersectionsOne == [] && intersectionsTwo == [] = (Nothing, [])
+        | intersectionsOne == [] && isObjectTwoBeforeCamera = (Just $ fst objectTwo, intersectionsTwo)
+        | intersectionsTwo == [] && isObjectOneBeforeCamera = (Just objectOne, intersectionsOne)
+        | oneCloser && isObjectOneBeforeCamera = (Just objectOne, intersectionsOne)
+        | isObjectTwoBeforeCamera = (Just $ fst objectTwo, intersectionsTwo)
+        | otherwise = (Nothing, [])
         where
             intersectionsOne = intersections line objectOne
-            intersectionsTwo = intersections line objectTwo
+            intersectionsTwo = intersections line $ fst objectTwo
             isObjectOneBeforeCamera = (head intersectionsOne) > 0 || (intersectionsOne !! 1) > 0
             isObjectTwoBeforeCamera = (head intersectionsTwo) > 0 || (intersectionsTwo !! 1) > 0
             oneCloser = head intersectionsOne < head intersectionsTwo
 
-    generatePixel :: [Line] -> [Shape] -> ([Line], PixelRGB8)
-    generatePixel (nextInLine:lines) objects = (lines, PixelRGB8 
-        ( (colorAtPixel nextInLine nearestIntersectingObject)) 
-        ( (colorAtPixel nextInLine nearestIntersectingObject)) 
-        128)
+    generatePixel :: [Line] -> [Shape] -> [Lightsource]-> ([Line], PixelRGB8)
+    generatePixel (nextInLine:lines) objects lightsources = (lines, PixelRGB8 
+       intensity intensity intensity)
         where
+            intensity = round ((colorAtPixel nextInLine nearestIntersectingObject objects lightsources) * 255)
             nearestIntersectingObject = getNearestIntersectingObject nextInLine objects
 
     parseScene :: BL.ByteString -> Scene
@@ -107,10 +129,11 @@ where
                             ) 
                             [
                                 (Sphere 
-                                    (Point 1 2 3) 1), 
+                                    (Point (-1) 0 0) 1), 
                                 (Sphere 
-                                    (Point 1 3 2) 2)
-                            ])
+                                    (Point 1 0 0) 1)
+                            ]
+                            [(Lightsource (Point 0 0 3) 0.5)])
 
     -- renderTest :: Int -> Image
     makeViewTest size = do 
@@ -120,13 +143,14 @@ where
 
     renderTest size isRecursive
         | isRecursive =  writePng "img1.png" $ snd (generateFoldImage 
-            (\deAcc x y -> generatePixel deAcc sphere) linesRec
+            (\deAcc x y -> generatePixel deAcc sphere lightsourceList) linesRec
             (fromInteger hPixels) (fromInteger vPixels))
         | otherwise =  writePng "img1.png" $ snd (generateFoldImage 
-            (\deAcc x y -> generatePixel deAcc sphere) linesListComprehension
+            (\deAcc x y -> generatePixel deAcc sphere lightsourceList) linesListComprehension
             (fromInteger hPixels) (fromInteger vPixels))
         where 
             sphere = [Sphere (Point 0 0 0) 1]
+            lightsourceList = [Lightsource (Point 0 0 3) 0.5]
             hPixels = size
             vPixels = size
             view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi)
