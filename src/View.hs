@@ -18,24 +18,23 @@ module View
         upVector :: Vector,
         horPixels :: Integer,
         verPixels :: Integer,
-        fieldOfView :: Float,
-        aspectRatio :: Float
+        fieldOfView :: Float
      } deriving (Eq, Show, Generic)
     instance ToJSON View where
         toJSON = genericToJSON defaultOptions 
     instance FromJSON View where
         parseJSON = genericParseJSON defaultOptions 
 
-    generateLines :: View -> [[Line]]
-    generateLines (View (Point xp yp zp) (Vector xv yv zv) (Vector xUp yUp zUp) horPixels verPixels fieldOfView aspectRatio)
-        | fieldOfView == 0 = [[Line centerPoint (Vector xv yv zv)]]
+    generateLines :: View -> [Line]
+    generateLines (View (Point xp yp zp) (Vector xv yv zv) (Vector xUp yUp zUp) horPixels verPixels fieldOfView)
+        | fieldOfView == 0 = [Line centerPoint (Vector xv yv zv)]
         | otherwise = theLines
         where
             centerPoint = Point xp yp zp
             vNormal = Vector xv yv zv
             vUp = Vector xUp yUp zUp
             height = 2*tan(fieldOfView/2)
-            width = height/aspectRatio
+            width = height/((fromInteger horPixels)/(fromInteger verPixels))
             distCenterCorner = sqrt((height/2)^2 + (width/2)^2)
             topAngle = atan(height/width)
             topLeft = getPointOnLine (Line centerPoint 
@@ -46,14 +45,14 @@ module View
             rightLine = Line topRight (Vector (-xUp) (-yUp) (-zUp))
             viewPoint = getPointOnLine (Line centerPoint (Vector (-xv) (-yv) (-zv))) 1.0
 
-            theLines = [[lineFromPoints viewPoint (getPointOnLine (lineFromPoints 
+            theLines = [lineFromPoints viewPoint (getPointOnLine (lineFromPoints 
                 (getPointOnLine leftLine ((x*width)/(fromInteger (verPixels - 1)))) 
                 (getPointOnLine rightLine ((x*width)/(fromInteger (verPixels - 1))))) 
                 ((y*height)/(fromInteger (horPixels - 1))) ) |
-                x <- [0.0.. fromInteger (verPixels - 1)]] | y <- [0.0.. fromInteger (horPixels - 1)]]
+                x <- [0.0.. fromInteger (verPixels - 1)], y <- [0.0.. fromInteger (horPixels - 1)]]
 
     generateLines2 :: View -> [Line]
-    generateLines2 (View centerPoint directionForward directionUp horPixels verPixels fieldOfView aspectRatio) = 
+    generateLines2 (View centerPoint directionForward directionUp horPixels verPixels fieldOfView) = 
         let viewPoint = centerPoint `moveP` (directionForward `timesV` (-1) )
             viewPortWidth = 2*tan(fieldOfView/2)
             viewPortHeight = viewPortWidth*((fromInteger verPixels)/(fromInteger horPixels))

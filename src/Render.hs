@@ -31,23 +31,18 @@ where
     instance FromJSON Scene where
         parseJSON = genericParseJSON defaultOptions 
 
-    render inputJSON 
-        -- | inputString == _ = image
-        -- | otherwise         
-        = encodePng $ generateImage 
-        (\x y -> generatePixel (lines !! x !! y) objectList) 
-        (fromInteger hPixels) (fromInteger vPixels)
+    render :: BL.ByteString -> BL.ByteString
+    render inputJSON     
+        = encodePng $ snd $ generateFoldImage 
+            (\deAcc x y -> generatePixel deAcc objectList) lines
+            (fromInteger hPixels) (fromInteger vPixels)
         where 
             scene = parseScene inputJSON
             objectList = objects scene
             camera = view scene
             hPixels = horPixels camera
             vPixels = verPixels camera
-            -- view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi) (3/2)
             lines = generateLines camera
-            -- image = encodePng $ generateImage 
-            --     (\x y -> generatePixel x y (lines !! x !! y) sphere) 
-            --     (fromInteger vPixels) (fromInteger hPixels)
 
     colorAtPixel :: Num p => Line -> Maybe Shape -> p
     colorAtPixel l object 
@@ -57,8 +52,9 @@ where
     getNearestIntersectingObject :: Line -> [Shape] -> Maybe Shape
     getNearestIntersectingObject line [] = Nothing
     getNearestIntersectingObject line [oneObject] 
-        |   intersect == [] = Nothing
-        |   otherwise = Just oneObject
+        | intersect == [] = Nothing
+        | head intersect > 0 || intersect !! 1 > 0 = Just oneObject
+        | otherwise = Nothing
         where 
             intersect = intersections line oneObject
     getNearestIntersectingObject line (firstObject:otherObjects) = 
@@ -76,23 +72,25 @@ where
     getClosest :: Line -> Shape -> Shape -> Maybe Shape
     getClosest line objectOne objectTwo
         | intersectionsOne == [] && intersectionsTwo == [] = Nothing
-        | intersectionsOne == [] = Just objectTwo
-        | intersectionsTwo == [] = Just objectOne
-        | oneCloser = Just objectOne
-        | otherwise = Just objectTwo
+        | intersectionsOne == [] && isObjectTwoBeforeCamera = Just objectTwo
+        | intersectionsTwo == [] && isObjectOneBeforeCamera = Just objectOne
+        | oneCloser && isObjectOneBeforeCamera = Just objectOne
+        | isObjectTwoBeforeCamera = Just objectTwo
+        | otherwise = Nothing
         where
             intersectionsOne = intersections line objectOne
             intersectionsTwo = intersections line objectTwo
+            isObjectOneBeforeCamera = (head intersectionsOne) > 0 || (intersectionsOne !! 1) > 0
+            isObjectTwoBeforeCamera = (head intersectionsTwo) > 0 || (intersectionsTwo !! 1) > 0
             oneCloser = head intersectionsOne < head intersectionsTwo
 
-
-    generatePixel :: Line -> [Shape] -> PixelRGB8
-    generatePixel line objects = PixelRGB8 
-        ( (colorAtPixel line nearestIntersectingObject)) 
-        ( (colorAtPixel line nearestIntersectingObject)) 
-        128
+    generatePixel :: [Line] -> [Shape] -> ([Line], PixelRGB8)
+    generatePixel (nextInLine:lines) objects = (lines, PixelRGB8 
+        ( (colorAtPixel nextInLine nearestIntersectingObject)) 
+        ( (colorAtPixel nextInLine nearestIntersectingObject)) 
+        128)
         where
-            nearestIntersectingObject = getNearestIntersectingObject line objects
+            nearestIntersectingObject = getNearestIntersectingObject nextInLine objects
 
     parseScene :: BL.ByteString -> Scene
     parseScene inputJSON = 
@@ -106,7 +104,6 @@ where
                                 300 
                                 200 
                                 (0.5*pi) 
-                                (3/2)
                             ) 
                             [
                                 (Sphere 
@@ -117,19 +114,21 @@ where
 
     -- renderTest :: Int -> Image
     makeViewTest size = do 
-            let view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) size size (0.5*pi) (3/2)
+            let view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) size size (0.5*pi)
             let lines = generateLines view
             return $! lines
 
-    renderTest size
-        -- | inputString == _ = image
-        -- | otherwise         
-        =  writePng "img1.png" $ generateImage 
-            (\x y -> generatePixel (lines !! (x*y)) sphere) 
-            (fromInteger hPixels) (fromInteger vPixels)
+    renderTest size isRecursive
+        | isRecursive =  writePng "img1.png" $ snd (generateFoldImage 
+            (\deAcc x y -> generatePixel deAcc sphere) linesRec
+            (fromInteger hPixels) (fromInteger vPixels))
+        | otherwise =  writePng "img1.png" $ snd (generateFoldImage 
+            (\deAcc x y -> generatePixel deAcc sphere) linesListComprehension
+            (fromInteger hPixels) (fromInteger vPixels))
         where 
             sphere = [Sphere (Point 0 0 0) 1]
             hPixels = size
             vPixels = size
-            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi) (3/2)
-            lines = generateLines2 view
+            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi)
+            linesRec = generateLines2 view
+            linesListComprehension = generateLines view

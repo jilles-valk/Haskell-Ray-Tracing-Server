@@ -40,7 +40,8 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
 </div>
 <div id="camera-orientation">Orientation: 
   <div id="top-orientation-buttons">
-    <button id="rollLeft" v-on:click="emitChangeViewOrientation">Roll Left</button>
+    <button id="rollLeft" v-on:click="emitChangeViewOrientation"
+      v-on:keyup.enter="emitChangeViewOrientation">Roll Left</button>
     <button id="turnUp" v-on:click="emitChangeViewOrientation">Up</button>
     <button id="rollRight" v-on:click="emitChangeViewOrientation">Roll Right</button>
   </div>
@@ -56,6 +57,9 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
 </div>
 </div>  
     `,
+  created: function () {
+    window.addEventListener('keydown', this.onkey)
+  },
   methods: {
     changeObject: function(event) {
       if (event) {
@@ -93,6 +97,41 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
         this.$emit("change-view-fov", event.target.value);
       }
     },
+    onkey: function(event) {
+      console.log(event.code);
+      switch (event.code) {
+        case "KeyU":
+          this.$emit("change-view-orientation", "rollLeft");
+          break;
+        case "KeyI":
+          this.$emit("change-view-orientation", "turnUp");
+          break;
+        case "KeyO":
+          this.$emit("change-view-orientation", "rollRight");
+          break;
+        case "KeyJ":
+          this.$emit("change-view-orientation", "turnLeft");
+          break;
+        case "KeyK":
+          this.$emit("change-view-orientation", "turnDown");
+          break;
+        case "KeyL":
+          this.$emit("change-view-orientation", "turnRight");
+          break;
+        case "KeyW":
+          this.$emit("change-view-orientation", "moveForward");
+          break;
+        case "KeyA":
+          this.$emit("change-view-orientation", "moveLeft");
+          break;
+        case "KeyS":
+          this.$emit("change-view-orientation", "moveBackward");
+          break;
+        case "KeyD":
+          this.$emit("change-view-orientation", "moveRight");
+          break;
+      }
+    }
   }
 });
 
@@ -105,8 +144,7 @@ const app = new Vue({
       image: undefined,
       scene: { objects: [], 
         view: { position: {x: 0, y:0, z:5}, forwardVector: {xv:0, yv:0, zv:-1}, 
-          upVector: {xv:0, yv:1, zv:0}, horPixels:300, verPixels:200, fieldOfView: 1.57, 
-          aspectRatio:1.5} },
+          upVector: {xv:0, yv:1, zv:0}, horPixels:300, verPixels:200, fieldOfView: 0.25*Math.PI} },
       status: "not connected",
       WS: undefined,
       test: "a"
@@ -159,7 +197,8 @@ const app = new Vue({
       this.sendScene();
     },
     changeViewOrientation (command) {
-      let increment = 0.1*Math.PI;
+      let increment = 0.025*Math.PI;
+      let moveIncrement = 0.1;
       let rightVector = 
             rotate(this.scene.view.forwardVector, this.scene.view.upVector, 0.5*Math.PI);
       switch (command) {
@@ -190,6 +229,26 @@ const app = new Vue({
         case "turnRight":
           this.scene.view.forwardVector = 
             rotate(this.scene.view.forwardVector, this.scene.view.upVector, -increment);
+          break;
+        case "moveForward":
+          this.scene.view.position = 
+            addVectorToPoint(this.scene.view.position, 
+              times(this.scene.view.forwardVector, moveIncrement));
+          break;
+        case "moveLeft":
+          this.scene.view.position = 
+            addVectorToPoint(this.scene.view.position, 
+              times(rightVector, moveIncrement));
+          break;
+        case "moveBackward":
+            this.scene.view.position = 
+              addVectorToPoint(this.scene.view.position, 
+                times(this.scene.view.forwardVector, -moveIncrement));
+          break;
+        case "moveRight":
+          this.scene.view.position = 
+            addVectorToPoint(this.scene.view.position, 
+              times(rightVector, -moveIncrement));
           break;
       };
       this.sendScene();
@@ -234,6 +293,12 @@ function add (a, b) {
   return {xv:(a.xv+b.xv), 
           yv:(a.yv+b.yv), 
           zv:(a.zv+b.zv)};
+}
+
+function addVectorToPoint (a, b) {
+  return {x:(a.x+b.xv), 
+          y:(a.y+b.yv), 
+          z:(a.z+b.zv)};
 }
 
 function dot (a, b) {
