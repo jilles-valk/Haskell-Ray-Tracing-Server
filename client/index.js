@@ -1,8 +1,8 @@
 var display = Vue.extend({
-  props: ["image", "test"],
+  props: ["image", "test", "view"],
   template: `
-        <div>
-            <canvas id="canvas" ref="canvas" width="300px" height="200px"></canvas>
+        <div>{{view.horPixels}}
+            <canvas id="canvas" ref="canvas" width="view.horPixels" height="view.verPixels"></canvas>
             <div>Scene: {{test}}</div>
         </div>
         `,
@@ -32,6 +32,19 @@ var controls = Vue.extend({
 <div>Add object
     <button v-on:click="addObject">Add sphere</button>
 </div>
+<div id="lightsourcesContainer" v-for="(object, index) in scene.lightsources">{{object.x}}
+  <div id="lightsourceTitle">Lightsource {{index}}</div>
+  <div class="objectButtons">
+      x:<input :id="index" class="x" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.location.x"/>
+      y:<input :id="index" class="y" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.location.y"/>
+      z:<input :id="index" class="z" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.location.z"/>
+      intensity:<input :id="index" class="intensity" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.intensity"/>
+      <button :id="index" class="remove" v-on:click="emitChangeLightsource">Delete</button>
+  </div>
+</div>
+<div>Add object
+    <button id="addLightsource" class="add"v-on:click="emitChangeLightsource">Add lightsource</button>
+</div>
 <div id="camera">Camera controlls
 <div id="camera-pos">Position:
 x:<input id="positionInput" class="x" type="number" step=".1" v-on:change="emitChangeViewPosition" :value="scene.view.position.x.toFixed(2)"/>
@@ -53,6 +66,11 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
   <div id="fieldOfView">
     Field of view: <input id="fieldOfViewInput" class="fov" type="number" step="1" min="0" max="180"v-on:change="emitChangeViewFOV" :value="(scene.view.fieldOfView*180/Math.PI).toFixed(1)"/>
   </div>
+  <div id="resolution">
+    Resolution: 
+    horizontal: <input id="horPixels" class="res" type="number" step="1" min="0" max="3840"v-on:change="emitChanceRes" :value="scene.view.horPixels"/>
+    vertical: <input id="verPixels" class="res" type="number" step="1" min="0" max="2160"v-on:change="emitChanceRes" :value="scene.view.verPixels"/>
+  </div>
 </div>
 </div>
 </div>  
@@ -72,6 +90,11 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
           event.target.className,
           event.target.value
         );
+      }
+    },
+    emitChangeLightsource: function(event) {
+      if (event){
+        this.$emit("change-lightsource", event.target.id, event.target.className, event.target.value);
       }
     },
     addObject: function() {
@@ -95,6 +118,11 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
     emitChangeViewFOV: function(event) {
       if (event){
         this.$emit("change-view-fov", event.target.value);
+      }
+    },
+    emitChanceRes: function(event) {
+      if (event){
+        this.$emit("change-view-res", event.target.id, event.target.value);
       }
     },
     onkey: function(event) {
@@ -149,6 +177,7 @@ const app = new Vue({
       status: "not connected",
       WS: undefined,
       test: "a"
+
     };
   },
   created: function() {
@@ -178,6 +207,22 @@ const app = new Vue({
         this.scene.objects[objectID].radius = parseFloat(parameterValue);
       } else {
         this.scene.objects[objectID].center[objectParameter] = parseFloat(parameterValue);
+      }
+      this.sendScene();
+    },
+    changeLightsource(lightsourceID, lightsourceParameter, parameterValue) {
+      switch (lightsourceParameter) {
+        case "intensity":
+            this.scene.lightsources[lightsourceID].intensity = parseFloat(parameterValue);
+            break;
+        case "remove":
+            this.scene.lightsources.splice(lightsourceID,1);
+            break;
+        case "add":
+            this.scene.lightsources.push({ intensity: 0.5, location: { x: 0, y: 0, z: 5 } });
+            break;
+        default:
+          this.scene.lightsources[lightsourceID].location[lightsourceParameter] = parseFloat(parameterValue);
       }
       this.sendScene();
     },
@@ -256,6 +301,10 @@ const app = new Vue({
     },
     changeViewFOV (value) {
       this.scene.view.fieldOfView = value*Math.PI/180;
+      this.sendScene();
+    },
+    changeViewRes (id, value) {
+      this.scene.view[id] = parseFloat(value)
       this.sendScene();
     }
   }

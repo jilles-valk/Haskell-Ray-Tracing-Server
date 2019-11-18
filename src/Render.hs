@@ -50,17 +50,18 @@ where
 
     colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
     colorAtPixel l object objectList lightsources
-        | isJust $ fst object = intensity
+        | isObject && angleReflectionLightsource > 0.5*pi = 0
+        | isObject = intensity
         | otherwise = 0
         where 
+            isObject = isJust $ fst object
             pointOnObject = getPointOnLine l $ head $ snd object
             intensityLightsourceAndLine = addIntensity 0 pointOnObject (fromJust (fst object)) objectList lightsources
             reflection = getReflection l pointOnObject (fromJust (fst object))
-            
             angleReflectionLightsource = acos( (direction reflection) `dot` 
                 (direction $ snd intensityLightsourceAndLine))
             intensity = fst intensityLightsourceAndLine * 
-                (((2 + angleReflectionLightsource)/(angleReflectionLightsource + 1)) -1)
+                (-0.8*sqrt(angleReflectionLightsource)+1)
             
     addIntensity :: Float -> Point -> Shape -> [Shape] -> [Lightsource] -> (Float, Line)
     addIntensity accIntensity pointOnObject object [] lightsourceList = 
@@ -87,7 +88,7 @@ where
     checkBlocked :: Line -> [Shape] -> Bool
     checkBlocked objectToLightsource [] = False
     checkBlocked objectToLightsource (firstObject:otherObjects)
-        | doesIntersect && (head intersect) > 0.01= True
+        | doesIntersect && intersect > [0,0] = True
         | otherwise = checkBlocked objectToLightsource otherObjects
         where
             intersect = intersections objectToLightsource firstObject
@@ -97,7 +98,7 @@ where
     getNearestIntersectingObject _ [] = (Nothing, [])
     getNearestIntersectingObject line [oneObject] 
         | intersect == [] = (Nothing, [])
-        | head intersect > (-0.01) && intersect !! 1 > (-0.01) = (Just oneObject, intersect)
+        | intersect > [0,0] = (Just oneObject, intersect)
         | otherwise = (Nothing, [])
         where 
             intersect = intersections line oneObject
@@ -131,9 +132,9 @@ where
             intersectionsTwo = intersections line $ fst objectTwo
             someEmpty = (null intersectionsOne && null intersectionsTwo)
             isObjectOneBeforeCamera = ((null intersectionsOne) == False) && 
-                ((head intersectionsOne) > 0 || (intersectionsOne !! 1) > 0)
+                (intersectionsOne > [0,0])
             isObjectTwoBeforeCamera = ((null intersectionsTwo) == False) && 
-                (head intersectionsTwo) > 0 || (intersectionsTwo !! 1) > 0
+                (intersectionsTwo > [0,0])
             oneCloser = ( intersectionsOne) < ( intersectionsTwo)
 
     removeFromList _ [] = []

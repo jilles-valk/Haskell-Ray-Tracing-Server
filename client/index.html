@@ -20,6 +20,7 @@
     <div id="app">
         <display id="display" 
             v-bind:image="image" 
+            v-bind:view="scene.view"
             v-bind:test="test">
         </display>
         <controls id="controls" 
@@ -29,6 +30,8 @@
             v-on:change-view="changeView" 
             v-on:change-view-orientation="changeViewOrientation"
             v-on:change-view-fov="changeViewFOV"
+            v-on:change-view-res="changeViewRes"
+            v-on:change-lightsource="changeLightsource"
             v-bind:scene="scene">
         </controls>
     </div>
