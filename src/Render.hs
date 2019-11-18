@@ -8,7 +8,8 @@ module Render
     generatePixel,
     getNearestIntersectingObject,
     parseScene,
-    addIntensity
+    addIntensity,
+    checkBlocked
 )
 where 
     import qualified Data.ByteString.Lazy as BL
@@ -53,34 +54,45 @@ where
         | otherwise = 0
         where 
             pointOnObject = getPointOnLine l $ head $ snd object
-            intensityLightsourceAndLine = addIntensity 0 pointOnObject objectList lightsources
+            intensityLightsourceAndLine = addIntensity 0 pointOnObject (fromJust (fst object)) objectList lightsources
             reflection = getReflection l pointOnObject (fromJust (fst object))
             
-            angleReflectionLightsource = acos( (direction reflection) `dot` (direction $ snd intensityLightsourceAndLine))
+            angleReflectionLightsource = acos( (direction reflection) `dot` 
+                (direction $ snd intensityLightsourceAndLine))
             intensity = fst intensityLightsourceAndLine * 
                 (((2 + angleReflectionLightsource)/(angleReflectionLightsource + 1)) -1)
             
-    addIntensity :: Float -> Point -> [Shape] -> [Lightsource] -> (Float, Line)
-    addIntensity accIntensity _ [] _ = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
-    addIntensity accIntensity _ _ [] = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
-    addIntensity accIntensity pointOnObject objectList [justOneLightsource]
+    addIntensity :: Float -> Point -> Shape -> [Shape] -> [Lightsource] -> (Float, Line)
+    addIntensity accIntensity pointOnObject object [] lightsourceList = 
+        addIntensity accIntensity pointOnObject object [object] lightsourceList
+    addIntensity accIntensity _ _ _ [] = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
+    addIntensity accIntensity pointOnObject object objectList [justOneLightsource]
         | blocked = (accIntensity, objectToLightsource)
         | otherwise = (newIntensity, objectToLightsource)
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location justOneLightsource
-            -- blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objectList
-            blocked = False
+            blocked = checkBlocked objectToLightsource objectList
+            -- blocked = False
             newIntensity = accIntensity + intensity justOneLightsource
-    addIntensity accIntensity pointOnObject objectList (nextLightsource:lightsources)
-        | blocked = addIntensity accIntensity pointOnObject objectList lightsources
-        | otherwise = addIntensity newIntensity pointOnObject objectList lightsources
+    addIntensity accIntensity pointOnObject object objectList (nextLightsource:lightsources)
+        | blocked = addIntensity accIntensity pointOnObject object objectList lightsources
+        | otherwise = addIntensity newIntensity pointOnObject object objectList lightsources
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location nextLightsource
-            blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objectList
+            blocked = checkBlocked objectToLightsource objectList
             -- blocked = True
             invAccIntensity = accIntensity/(1-accIntensity)
             newIntensity = invAccIntensity + intensity nextLightsource
 
+    checkBlocked :: Line -> [Shape] -> Bool
+    checkBlocked objectToLightsource [] = False
+    checkBlocked objectToLightsource (firstObject:otherObjects)
+        | doesIntersect && (head intersect) > 0.01= True
+        | otherwise = checkBlocked objectToLightsource otherObjects
+        where
+            intersect = intersections objectToLightsource firstObject
+            doesIntersect = (null intersect) == False
+        
     getNearestIntersectingObject :: Line -> [Shape] -> (Maybe Shape, [Float])
     getNearestIntersectingObject _ [] = (Nothing, [])
     getNearestIntersectingObject line [oneObject] 
@@ -106,17 +118,28 @@ where
     getClosest :: Line -> Shape -> (Shape, [Float]) -> (Maybe Shape, [Float])
     getClosest line objectOne objectTwo
         | intersectionsOne == [] && intersectionsTwo == [] = (Nothing, [])
-        | intersectionsOne == [] && isObjectTwoBeforeCamera = (Just $ fst objectTwo, intersectionsTwo)
-        | intersectionsTwo == [] && isObjectOneBeforeCamera = (Just objectOne, intersectionsOne)
+        | intersectionsOne == [] && intersectionsTwo /= [] &&
+            isObjectTwoBeforeCamera = (Just $ fst objectTwo, intersectionsTwo)
+        | intersectionsTwo == [] && intersectionsOne /= [] &&
+            isObjectOneBeforeCamera = (Just objectOne, intersectionsOne)
+        | someEmpty = (Nothing, [])
         | oneCloser && isObjectOneBeforeCamera = (Just objectOne, intersectionsOne)
         | isObjectTwoBeforeCamera = (Just $ fst objectTwo, intersectionsTwo)
         | otherwise = (Nothing, [])
         where
             intersectionsOne = intersections line objectOne
             intersectionsTwo = intersections line $ fst objectTwo
-            isObjectOneBeforeCamera = (head intersectionsOne) > 0 || (intersectionsOne !! 1) > 0
-            isObjectTwoBeforeCamera = (head intersectionsTwo) > 0 || (intersectionsTwo !! 1) > 0
-            oneCloser = head intersectionsOne < head intersectionsTwo
+            someEmpty = (null intersectionsOne && null intersectionsTwo)
+            isObjectOneBeforeCamera = ((null intersectionsOne) == False) && 
+                ((head intersectionsOne) > 0 || (intersectionsOne !! 1) > 0)
+            isObjectTwoBeforeCamera = ((null intersectionsTwo) == False) && 
+                (head intersectionsTwo) > 0 || (intersectionsTwo !! 1) > 0
+            oneCloser = ( intersectionsOne) < ( intersectionsTwo)
+
+    removeFromList _ [] = []
+    removeFromList toRemove (first:remaining)
+        | toRemove == first = remaining
+        | otherwise = first : removeFromList toRemove remaining
 
     generatePixel :: [Line] -> [Shape] -> [Lightsource]-> ([Line], PixelRGB8)
     generatePixel (nextInLine:lines) objectList lightsources = (lines, PixelRGB8 
