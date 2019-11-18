@@ -7,7 +7,8 @@ module Render
     colorAtPixel,
     generatePixel,
     getNearestIntersectingObject,
-    parseScene
+    parseScene,
+    addIntensity
 )
 where 
     import qualified Data.ByteString.Lazy as BL
@@ -47,40 +48,41 @@ where
             lines = generateLines camera
 
     colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
-    colorAtPixel l object objects lightsources
+    colorAtPixel l object objectList lightsources
         | isJust $ fst object = intensity
         | otherwise = 0
         where 
             pointOnObject = getPointOnLine l $ head $ snd object
-            intensityLightsourceAndLine = addIntensity 0 pointOnObject objects lightsources
-            normal = lineFromPoints (center $ fromJust $ fst object) pointOnObject
-            angleNormalCamera = acos( (direction normal) `dot` (direction l `timesV` (-1)))
-            angleNormalLightsource = acos( (direction normal) `dot` (direction $ snd intensityLightsourceAndLine))
-            anglesDifference = abs ((angleNormalCamera-angleNormalLightsource)/angleNormalCamera)
-            intensity = fst intensityLightsourceAndLine * 
-                (anglesDifference/(1 + anglesDifference))
+            intensityLightsourceAndLine = addIntensity 0 pointOnObject objectList lightsources
+            reflection = getReflection l pointOnObject (fromJust (fst object))
             
-
+            angleReflectionLightsource = acos( (direction reflection) `dot` (direction $ snd intensityLightsourceAndLine))
+            intensity = fst intensityLightsourceAndLine * 
+                (((2 + angleReflectionLightsource)/(angleReflectionLightsource + 1)) -1)
+            
     addIntensity :: Float -> Point -> [Shape] -> [Lightsource] -> (Float, Line)
-    addIntensity accIntensity pointOnObject objects [] = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
-    addIntensity accIntensity pointOnObject objects [justOneLightsource]
+    addIntensity accIntensity _ [] _ = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
+    addIntensity accIntensity _ _ [] = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
+    addIntensity accIntensity pointOnObject objectList [justOneLightsource]
         | blocked = (accIntensity, objectToLightsource)
         | otherwise = (newIntensity, objectToLightsource)
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location justOneLightsource
-            blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objects
+            -- blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objectList
+            blocked = False
             newIntensity = accIntensity + intensity justOneLightsource
-    addIntensity accIntensity pointOnObject objects (nextLightsource:lightsources)
-        | blocked = addIntensity accIntensity pointOnObject objects lightsources
-        | otherwise = addIntensity newIntensity pointOnObject objects lightsources
+    addIntensity accIntensity pointOnObject objectList (nextLightsource:lightsources)
+        | blocked = addIntensity accIntensity pointOnObject objectList lightsources
+        | otherwise = addIntensity newIntensity pointOnObject objectList lightsources
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location nextLightsource
-            blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objects
+            blocked = isJust $ fst $ getNearestIntersectingObject objectToLightsource objectList
+            -- blocked = True
             invAccIntensity = accIntensity/(1-accIntensity)
             newIntensity = invAccIntensity + intensity nextLightsource
 
     getNearestIntersectingObject :: Line -> [Shape] -> (Maybe Shape, [Float])
-    getNearestIntersectingObject line [] = (Nothing, [])
+    getNearestIntersectingObject _ [] = (Nothing, [])
     getNearestIntersectingObject line [oneObject] 
         | intersect == [] = (Nothing, [])
         | head intersect > (-0.01) && intersect !! 1 > (-0.01) = (Just oneObject, intersect)
@@ -117,11 +119,11 @@ where
             oneCloser = head intersectionsOne < head intersectionsTwo
 
     generatePixel :: [Line] -> [Shape] -> [Lightsource]-> ([Line], PixelRGB8)
-    generatePixel (nextInLine:lines) objects lightsources = (lines, PixelRGB8 
+    generatePixel (nextInLine:lines) objectList lightsources = (lines, PixelRGB8 
        intensity intensity intensity)
         where
-            intensity = round ((colorAtPixel nextInLine nearestIntersectingObject objects lightsources) * 255)
-            nearestIntersectingObject = getNearestIntersectingObject nextInLine objects
+            intensity = round ((colorAtPixel nextInLine nearestIntersectingObject objectList lightsources) * 255)
+            nearestIntersectingObject = getNearestIntersectingObject nextInLine objectList
 
     parseScene :: BL.ByteString -> Scene
     parseScene inputJSON = 

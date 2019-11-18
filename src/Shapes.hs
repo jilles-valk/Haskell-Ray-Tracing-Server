@@ -16,7 +16,8 @@ module Shapes
     timesV,
     rotateV,
     intersections,
-    lineFromPoints
+    lineFromPoints,
+    getReflection
     -- rotate
 ) where 
     import GHC.Generics
@@ -121,5 +122,4 @@ module Shapes
     getReflection :: Line -> Point -> Shape -> Line
     getReflection line reflectionPoint sphere = 
         let normal = lineFromPoints (center sphere) reflectionPoint
-
-        in Line (Point 1 2 3) (Vector 1 2 3)
+        in Line reflectionPoint (rotateV (timesV (direction line) (-1)) (direction normal) pi)

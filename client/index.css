@@ -7,7 +7,14 @@
 #display {
     position: fixed;
     left: 15vw;;
-    width: 30vw;
+    width: 70vw;
+    height: 70vh;
+    text-align: center;
+}
+#canvas {
+    position: fixed;
+    left: 5vw;;
+    width: 70vw;
     text-align: center;
 }
 

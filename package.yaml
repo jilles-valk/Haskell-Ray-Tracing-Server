@@ -50,6 +50,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     - -O
+    - -fprof-auto
     dependencies:
     - RTS
   pTest-exe:

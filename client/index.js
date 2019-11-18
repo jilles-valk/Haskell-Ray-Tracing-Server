@@ -2,7 +2,7 @@ var display = Vue.extend({
   props: ["image", "test"],
   template: `
         <div>
-            <canvas ref="canvas" width="300px" height="200px" ></canvas>
+            <canvas id="canvas" ref="canvas" width="300px" height="200px"></canvas>
             <div>Scene: {{test}}</div>
         </div>
         `,
