@@ -23,7 +23,7 @@
     position: fixed;
     right: 0;
     height: 100vh;
-    /* width: 30vw; */
+    width: 25vw;
 }
 
 .x, .y, .z, .r {

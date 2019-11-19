@@ -2,14 +2,14 @@ var display = Vue.extend({
   props: ["image", "test", "view"],
   template: `
         <div>{{view.horPixels}}
-            <canvas id="canvas" ref="canvas" width="view.horPixels" height="view.verPixels"></canvas>
+            <canvas id="canvas" ref="canvas" width="1920px" height="1080px"></canvas>
             <div>Scene: {{test}}</div>
         </div>
         `,
   watch: {
     image: function(newVal, oldVal) {
       var ctx = this.$refs.canvas.getContext("2d");
-      ctx.drawImage(image, 0, 0);
+      ctx.drawImage(image, 0, 0, 1920, 1080);
     }
   },
   methods: {}
@@ -68,10 +68,12 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
   </div>
   <div id="resolution">
     Resolution: 
-    horizontal: <input id="horPixels" class="res" type="number" step="1" min="0" max="3840"v-on:change="emitChanceRes" :value="scene.view.horPixels"/>
-    vertical: <input id="verPixels" class="res" type="number" step="1" min="0" max="2160"v-on:change="emitChanceRes" :value="scene.view.verPixels"/>
+    horizontal: <input id="horPixels" class="res" type="number" step="1" min="0" max="1920"v-on:change="emitChanceRes" :value="scene.view.horPixels"/>
   </div>
 </div>
+</div>
+<div id="instructions">
+  You can move through the scene using the "wasd" keys, you can look around using "ijkl" and "uo" are for rolling left and right.
 </div>
 </div>  
     `,
@@ -173,7 +175,7 @@ const app = new Vue({
       scene: { objects: [],
                lightsources: [{location:{x: -3, y: 0, z: 0}, intensity: 0.5}],
         view: { position: {x: 0, y:0, z:5}, forwardVector: {xv:0, yv:0, zv:-1}, 
-          upVector: {xv:0, yv:1, zv:0}, horPixels:300, verPixels:200, fieldOfView: 0.25*Math.PI} },
+          upVector: {xv:0, yv:1, zv:0}, horPixels:320, verPixels:180, fieldOfView: 0.25*Math.PI} },
       status: "not connected",
       WS: undefined,
       test: "a"
@@ -304,7 +306,8 @@ const app = new Vue({
       this.sendScene();
     },
     changeViewRes (id, value) {
-      this.scene.view[id] = parseFloat(value)
+      this.scene.view.horPixels = parseFloat(value)
+      this.scene.view.verPixels = parseInt(parseFloat(value)*(9/16))
       this.sendScene();
     }
   }

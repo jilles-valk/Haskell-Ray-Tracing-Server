@@ -137,11 +137,6 @@ where
                 (intersectionsTwo > [0,0])
             oneCloser = ( intersectionsOne) < ( intersectionsTwo)
 
-    removeFromList _ [] = []
-    removeFromList toRemove (first:remaining)
-        | toRemove == first = remaining
-        | otherwise = first : removeFromList toRemove remaining
-
     generatePixel :: [Line] -> [Shape] -> [Lightsource]-> ([Line], PixelRGB8)
     generatePixel (nextInLine:lines) objectList lightsources = (lines, PixelRGB8 
        intensity intensity intensity)
