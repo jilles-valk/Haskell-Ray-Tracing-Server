@@ -51,13 +51,12 @@ where
     colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
     colorAtPixel l object objectList lightsources
         -- | isObject && angleReflectionLightsource > 0.5*pi = 0
-        | isObject = intensity
+        | isObject = intensityLightsource
         | otherwise = 0
         where 
             isObject = isJust $ fst object
             pointOnObject = getPointOnLine l $ head $ snd object
             intensityLightsource = addIntensity 0 l pointOnObject (fromJust (fst object)) objectList lightsources
-            intensity = intensityLightsource
             
     addIntensity :: Float -> Line -> Point -> Shape -> [Shape] -> [Lightsource] -> Float
     addIntensity _ _ _ _ _ [] = 0
@@ -65,14 +64,17 @@ where
         addIntensity accIntensity l pointOnObject object [object] lightsourceList
     addIntensity accIntensity l pointOnObject object objectList (nextLightsource:lightsources)
         | null lightsources && blocked = accIntensity
-        | null lightsources && not blocked = newIntensity
-        | blocked = addIntensity accIntensity l pointOnObject object objectList lightsources
-        | otherwise = addIntensity newIntensity l pointOnObject object objectList lightsources
+        | null lightsources && not blocked && lightedSide = newIntensity
+        | not blocked && lightedSide = addIntensity newIntensity l pointOnObject object objectList lightsources
+        | otherwise = addIntensity accIntensity l pointOnObject object objectList lightsources
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location nextLightsource
             blocked = checkBlocked objectToLightsource objectList
             reflection = getReflection l pointOnObject object
-            adjustedAngle = 1 - (acos( (direction reflection) `dot` (direction objectToLightsource))/(pi))
+            angleReflectionLightsource = acos((direction reflection) `dot` (direction objectToLightsource))
+            angleLightsourceCamera = pi - acos((direction objectToLightsource) `dot` (timesV (direction l) (-1)))
+            lightedSide = angleReflectionLightsource < angleLightsourceCamera
+            adjustedAngle = (angleLightsourceCamera - angleReflectionLightsource)/angleLightsourceCamera
             invPrevIntensity = accIntensity/(2 - accIntensity)
             newIntensity = (adjustedAngle* (intensity nextLightsource) + invPrevIntensity)/
                             (adjustedAngle* (intensity nextLightsource)  + invPrevIntensity+2)
@@ -81,7 +83,7 @@ where
     checkBlocked objectToLightsource [] = False
     checkBlocked objectToLightsource (firstObject:otherObjects)
         -- | null otherObjects = False
-        | doesIntersect && intersect > [-0.001] && intersect < [0.001] = True
+        | doesIntersect && intersect > [-0.01] && intersect < [0.01] = True
         | otherwise = checkBlocked objectToLightsource otherObjects
         where
             intersect = intersections objectToLightsource firstObject
@@ -131,8 +133,8 @@ where
             oneCloser = ( intersectionsOne) < ( intersectionsTwo)
 
     generatePixel :: [Line] -> [Shape] -> [Lightsource]-> ([Line], PixelRGB8)
-    generatePixel (nextInLine:lines) objectList lightsources = (lines, PixelRGB8 
-       intensity intensity intensity)
+    generatePixel (nextInLine:lines) objectList lightsources = 
+        (lines, PixelRGB8 intensity intensity intensity)
         where
             intensity = round ((colorAtPixel nextInLine nearestIntersectingObject objectList lightsources) * 255)
             nearestIntersectingObject = getNearestIntersectingObject nextInLine objectList
