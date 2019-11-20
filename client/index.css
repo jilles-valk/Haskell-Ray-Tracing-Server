@@ -1,11 +1,21 @@
+body {
+    background-color:black;    
+}
 #mainheader {
-    background-color: aquamarine;
-    margin: auto;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 5vh;
+    background-color: grey;
     text-align: center;
+    color: white;
+    font-size: 2rem;
 }
 
 #display {
     position: fixed;
+    top: 5vh;
     left: 15vw;;
     width: 70vw;
     height: 70vh;
@@ -19,14 +29,57 @@
 }
 
 #controls {
-    background-color: aliceblue;
+    background-color: white;
     position: fixed;
+    top: 5vh;
     right: 0;
-    height: 100vh;
+    height: 95vh;
     width: 25vw;
 }
 
-.x, .y, .z, .r {
+#objectsAndLightsources {
+    overflow-y:scroll;
+    height:64vh;
+    border: solid;
+    border-color: grey;
+}
+
+#lightsourceTitle, #objectTitle {
+    font-weight: bold;
+    border-bottom: solid;
+    border-color: grey;
+    border-width: 0.3vw;
+}
+
+#lightsourcesContainer, #objectContainer {
+    border: solid;
+    border-color: grey;
+    border-width: 0.3vw;
+    margin: 0.5vw;
+}
+
+#addObjectContainer, #addLightsourceContainer {
+    margin: 0.5vw;   
+}
+
+#lightsourcesAndAdd {
+    border-top: solid;
+    border-color: grey;
+    margin-top: 2vh;
+}
+
+
+
+#bottomControlls {
+    position: absolute;
+    bottom:0;
+    height: 30vh;
+    border: solid;
+    border-color:grey;
+    
+}
+
+.x, .y, .z, .r, .intensity {
     width: 3vw;
 }
 

@@ -19,72 +19,95 @@ var controls = Vue.extend({
   props: ["scene", "sceneNumText"],
   template: `
   <div>
-  <div id="objectContainer" v-for="(object, index) in scene.objects">{{object.x}}
-  <div id="objectTitle">Object {{index}}</div>
-  <div class="objectButtons">
-      x:<input :id="index" class="x" type="number" step=".1" v-on:change="changeObject" :value="object.center.x"/>
-      y:<input :id="index" class="y" type="number" step=".1" v-on:change="changeObject" :value="object.center.y"/>
-      z:<input :id="index" class="z" type="number" step=".1" v-on:change="changeObject" :value="object.center.z"/>
-      r:<input :id="index" class="r" type="number" step=".1" v-on:change="changeObject" :value="object.radius"/>
-      <button :id="index" class="remove" v-on:click="emitRemoveObject">Delete</button>
+  <div id="objectsAndLightsources">
+      <div id="objectsAndAdd">
+          <div id="objectContainer" v-for="(object, index) in scene.objects">{{object.x}}
+              <div id="objectTitle">Object {{index}}</div>
+              <div class="objectButtons">
+                  x:<input :id="index" class="x" type="number" step=".1" v-on:change="changeObject"
+                      :value="object.center.x" />
+                  y:<input :id="index" class="y" type="number" step=".1" v-on:change="changeObject"
+                      :value="object.center.y" />
+                  z:<input :id="index" class="z" type="number" step=".1" v-on:change="changeObject"
+                      :value="object.center.z" />
+                  r:<input :id="index" class="r" type="number" step=".1" v-on:change="changeObject"
+                      :value="object.radius" />
+                  <button :id="index" class="remove" v-on:click="emitRemoveObject">Delete</button>
+              </div>
+          </div>
+          <div id="addObjectContainer">
+              <button v-on:click="addObject">Add sphere</button>
+          </div>
+      </div>
+      <div id="lightsourcesAndAdd">
+          <div id="lightsourcesContainer" v-for="(object, index) in scene.lightsources">{{object.x}}
+              <div id="lightsourceTitle">Lightsource {{index}}</div>
+              <div class="objectButtons">
+                  x:<input :id="index" class="x" type="number" step=".1" v-on:change="emitChangeLightsource"
+                      :value="object.location.x" />
+                  y:<input :id="index" class="y" type="number" step=".1" v-on:change="emitChangeLightsource"
+                      :value="object.location.y" />
+                  z:<input :id="index" class="z" type="number" step=".1" v-on:change="emitChangeLightsource"
+                      :value="object.location.z" />
+                  intensity:<input :id="index" class="intensity" type="number" step=".1"
+                      v-on:change="emitChangeLightsource" :value="object.intensity" />
+                  <button :id="index" class="remove" v-on:click="emitChangeLightsource">Delete</button>
+              </div>
+          </div>
+          <div id="addLightsourceContainer">
+              <button id="addLightsource" class="add" v-on:click="emitChangeLightsource">Add lightsource</button>
+          </div>
+      </div>
+  </div>
+  <div id="bottomControlls">
+      <div id="camera">Camera controlls
+          <div id="camera-pos">Position:
+              x:<input id="positionInput" class="x" type="number" step=".1" v-on:change="emitChangeViewPosition"
+                  :value="scene.view.position.x.toFixed(2)" />
+              y:<input id="positionInput" class="y" type="number" step=".1" v-on:change="emitChangeViewPosition"
+                  :value="scene.view.position.y.toFixed(2)" />
+              z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitChangeViewPosition"
+                  :value="scene.view.position.z.toFixed(2)" />
+          </div>
+          <div id="camera-orientation">Orientation:
+              <div id="top-orientation-buttons">
+                  <button id="rollLeft" v-on:click="emitChangeViewOrientation"
+                      v-on:keyup.enter="emitChangeViewOrientation">Roll Left</button>
+                  <button id="turnUp" v-on:click="emitChangeViewOrientation">Up</button>
+                  <button id="rollRight" v-on:click="emitChangeViewOrientation">Roll Right</button>
+              </div>
+              <div id="bottom-orientation-buttons">
+                  <button id="turnLeft" v-on:click="emitChangeViewOrientation">Left</button>
+                  <button id="turnDown" v-on:click="emitChangeViewOrientation">Down</button>
+                  <button id="turnRight" v-on:click="emitChangeViewOrientation">Right</button>
+              </div>
+              <div id="fieldOfView">
+                  Field of view: <input id="fieldOfViewInput" class="fov" type="number" step="1" min="0" max="180"
+                      v-on:change="emitChangeViewFOV" :value="(scene.view.fieldOfView*180/Math.PI).toFixed(1)" />
+              </div>
+              <div id="resolution">
+                  Resolution:
+                  horizontal: <input id="horPixels" class="res" type="number" step="1" min="0" max="1920"
+                      v-on:change="emitChanceRes" :value="scene.view.horPixels" />
+              </div>
+          </div>
+      </div>
+      <div id="instructions">
+          You can move through the scene using the "wasd" keys, you can look around using "ijkl" and "uo" are for
+          rolling
+          left and right.
+      </div>
+      <div id="loadSave">
+          Select scene:
+          <input id="sceneNum" type="number" v-on:change="emitChangeSaveScene" step="1" min="0" value="0" />
+          <button id="loadScene" v-on:click="emitChangeSaveScene">Load</button>
+          <button id="saveScene" v-on:click="emitChangeSaveScene">Save</button>
+          <div id="storageText">
+              {{sceneNumText}}
+          </div>
+      </div>
   </div>
 </div>
-<div>Add object
-    <button v-on:click="addObject">Add sphere</button>
-</div>
-<div id="lightsourcesContainer" v-for="(object, index) in scene.lightsources">{{object.x}}
-  <div id="lightsourceTitle">Lightsource {{index}}</div>
-  <div class="objectButtons">
-      x:<input :id="index" class="x" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.location.x"/>
-      y:<input :id="index" class="y" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.location.y"/>
-      z:<input :id="index" class="z" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.location.z"/>
-      intensity:<input :id="index" class="intensity" type="number" step=".1" v-on:change="emitChangeLightsource" :value="object.intensity"/>
-      <button :id="index" class="remove" v-on:click="emitChangeLightsource">Delete</button>
-  </div>
-</div>
-<div>Add object
-    <button id="addLightsource" class="add"v-on:click="emitChangeLightsource">Add lightsource</button>
-</div>
-<div id="camera">Camera controlls
-<div id="camera-pos">Position:
-x:<input id="positionInput" class="x" type="number" step=".1" v-on:change="emitChangeViewPosition" :value="scene.view.position.x.toFixed(2)"/>
-y:<input id="positionInput" class="y" type="number" step=".1" v-on:change="emitChangeViewPosition" :value="scene.view.position.y.toFixed(2)"/>
-z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitChangeViewPosition" :value="scene.view.position.z.toFixed(2)"/>
-</div>
-<div id="camera-orientation">Orientation: 
-  <div id="top-orientation-buttons">
-    <button id="rollLeft" v-on:click="emitChangeViewOrientation"
-      v-on:keyup.enter="emitChangeViewOrientation">Roll Left</button>
-    <button id="turnUp" v-on:click="emitChangeViewOrientation">Up</button>
-    <button id="rollRight" v-on:click="emitChangeViewOrientation">Roll Right</button>
-  </div>
-  <div id="bottom-orientation-buttons">
-    <button id="turnLeft" v-on:click="emitChangeViewOrientation">Left</button>
-    <button id="turnDown" v-on:click="emitChangeViewOrientation">Down</button>
-    <button id="turnRight" v-on:click="emitChangeViewOrientation">Right</button>
-  </div>
-  <div id="fieldOfView">
-    Field of view: <input id="fieldOfViewInput" class="fov" type="number" step="1" min="0" max="180"v-on:change="emitChangeViewFOV" :value="(scene.view.fieldOfView*180/Math.PI).toFixed(1)"/>
-  </div>
-  <div id="resolution">
-    Resolution: 
-    horizontal: <input id="horPixels" class="res" type="number" step="1" min="0" max="1920"v-on:change="emitChanceRes" :value="scene.view.horPixels"/>
-  </div>
-</div>
-</div>
-<div id="instructions">
-  You can move through the scene using the "wasd" keys, you can look around using "ijkl" and "uo" are for rolling left and right.
-</div>
-<div id="loadSave">
-  Select scene:
-  <input id="sceneNum" type="number" v-on:change="emitChangeSaveScene" step="1" min="0" value="0"/>
-  <button id="loadScene" v-on:click="emitChangeSaveScene">Load</button>
-  <button id="saveScene" v-on:click="emitChangeSaveScene">Save</button>
-  <div id="storageText">
-    {{sceneNumText}}
-  </div>
-</div>
-</div>  
     `,
   created: function () {
     window.addEventListener('keydown', this.onkey);

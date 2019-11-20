@@ -23,6 +23,8 @@ where
     import Data.Aeson
     import Data.Aeson.Types
     import Data.Maybe
+    import Data.List.Split
+    import Control.Parallel
 
     data Scene = Scene {
         view :: View,
@@ -39,15 +41,26 @@ where
         = encodePng $ snd $ generateFoldImage 
             (\deAcc x y -> generatePixel deAcc objectList lightsourceList) lines
             (fromInteger hPixels) (fromInteger vPixels)
+        -- = encodePng $ snd $ generateFoldImage 
+        --     (\deAcc x y -> takeFirst deAcc) allPixels
+        --     (hPixels) (vPixels)
         where 
             scene = parseScene inputJSON
             objectList = objects scene
             lightsourceList = lightsources scene
             camera = view scene
-            hPixels = horPixels camera
-            vPixels = verPixels camera
+            hPixels = fromInteger $ horPixels camera
+            vPixels = fromInteger $ verPixels camera
             lines = generateLines camera
+            -- linesInChunks = chunksOf ( ((hPixels*vPixels) `div` 2)) lines
+            -- firstHalf = (createPixels [] (head linesInChunks) objectList lightsourceList)
+            -- secondHalf = (createPixels [] (linesInChunks !! 1) objectList lightsourceList)
+            -- allPixels =  firstHalf `par` secondHalf `pseq` (firstHalf ++ secondHalf)
+            -- allPixels = firstHalf ++ secondHalf
 
+    takeFirst :: [PixelRGB8] -> ([PixelRGB8], PixelRGB8)
+    takeFirst (firstPixel:otherPixels) = (otherPixels, firstPixel)
+    
     colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
     colorAtPixel l object objectList lightsources
         -- | isObject && angleReflectionLightsource > 0.5*pi = 0
@@ -82,7 +95,6 @@ where
     checkBlocked :: Line -> [Shape] -> Bool
     checkBlocked objectToLightsource [] = False
     checkBlocked objectToLightsource (firstObject:otherObjects)
-        -- | null otherObjects = False
         | doesIntersect && intersect > [-0.01] && intersect < [0.01] = True
         | otherwise = checkBlocked objectToLightsource otherObjects
         where
@@ -138,6 +150,16 @@ where
         where
             intensity = round ((colorAtPixel nextInLine nearestIntersectingObject objectList lightsources) * 255)
             nearestIntersectingObject = getNearestIntersectingObject nextInLine objectList
+
+    createPixels :: [PixelRGB8] -> [Line] -> [Shape] -> [Lightsource] -> [PixelRGB8]
+    createPixels accPixels [] objectList lightsourceList = []
+    createPixels accPixels (nextInLine:lines) objectList lightsourceList 
+        | null lines = newPixel : accPixels
+        | otherwise = createPixels (newPixel:accPixels) lines objectList lightsourceList
+        where
+            intensity = round ((colorAtPixel nextInLine nearestIntersectingObject objectList lightsourceList) * 255)
+            nearestIntersectingObject = getNearestIntersectingObject nextInLine objectList
+            newPixel = PixelRGB8 intensity intensity intensity
 
     parseScene :: BL.ByteString -> Scene
     parseScene inputJSON = 

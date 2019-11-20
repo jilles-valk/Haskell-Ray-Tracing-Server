@@ -37,6 +37,8 @@ dependencies:
 - criterion
 - deepseq
 - hspec
+- split
+- parallel
 
 library:
   source-dirs: src
