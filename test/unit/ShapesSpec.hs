@@ -70,3 +70,11 @@ module ShapesSpec where
                 (intersections  (Line (Point 1 3 (-5)) (Vector 0 0 1)) sphere)
                 `shouldBe`
                 ([])
+            it "intersection when line starts on sphere" $
+                (intersections  (Line (Point 1 0 (0)) (Vector (-1) 0 0)) sphere)
+                `shouldBe`
+                ([0,2])
+            it "intersection when line starts in sphere" $
+                (intersections  (Line (Point 0.5 0 (0)) (Vector (-1) 0 0)) sphere)
+                `shouldBe`
+                ([0,2])

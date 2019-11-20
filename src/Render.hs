@@ -50,45 +50,38 @@ where
 
     colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
     colorAtPixel l object objectList lightsources
-        | isObject && angleReflectionLightsource > 0.5*pi = 0
+        -- | isObject && angleReflectionLightsource > 0.5*pi = 0
         | isObject = intensity
         | otherwise = 0
         where 
             isObject = isJust $ fst object
             pointOnObject = getPointOnLine l $ head $ snd object
-            intensityLightsourceAndLine = addIntensity 0 pointOnObject (fromJust (fst object)) objectList lightsources
-            reflection = getReflection l pointOnObject (fromJust (fst object))
-            angleReflectionLightsource = acos( (direction reflection) `dot` 
-                (direction $ snd intensityLightsourceAndLine))
-            intensity = fst intensityLightsourceAndLine * 
-                (-0.8*sqrt(angleReflectionLightsource)+1)
+            intensityLightsource = addIntensity 0 l pointOnObject (fromJust (fst object)) objectList lightsources
+            intensity = intensityLightsource
             
-    addIntensity :: Float -> Point -> Shape -> [Shape] -> [Lightsource] -> (Float, Line)
-    addIntensity accIntensity pointOnObject object [] lightsourceList = 
-        addIntensity accIntensity pointOnObject object [object] lightsourceList
-    addIntensity accIntensity _ _ _ [] = (accIntensity, (Line (Point 1 2 3) (Vector 1 2 3)))
-    addIntensity accIntensity pointOnObject object objectList [justOneLightsource]
-        | blocked = (accIntensity, objectToLightsource)
-        | otherwise = (newIntensity, objectToLightsource)
-        where 
-            objectToLightsource = lineFromPoints pointOnObject $ location justOneLightsource
-            blocked = checkBlocked objectToLightsource objectList
-            -- blocked = False
-            newIntensity = accIntensity + intensity justOneLightsource
-    addIntensity accIntensity pointOnObject object objectList (nextLightsource:lightsources)
-        | blocked = addIntensity accIntensity pointOnObject object objectList lightsources
-        | otherwise = addIntensity newIntensity pointOnObject object objectList lightsources
+    addIntensity :: Float -> Line -> Point -> Shape -> [Shape] -> [Lightsource] -> Float
+    addIntensity _ _ _ _ _ [] = 0
+    addIntensity accIntensity l pointOnObject object [] lightsourceList = 
+        addIntensity accIntensity l pointOnObject object [object] lightsourceList
+    addIntensity accIntensity l pointOnObject object objectList (nextLightsource:lightsources)
+        | null lightsources && blocked = accIntensity
+        | null lightsources && not blocked = newIntensity
+        | blocked = addIntensity accIntensity l pointOnObject object objectList lightsources
+        | otherwise = addIntensity newIntensity l pointOnObject object objectList lightsources
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location nextLightsource
             blocked = checkBlocked objectToLightsource objectList
-            -- blocked = True
-            invAccIntensity = accIntensity/(1-accIntensity)
-            newIntensity = invAccIntensity + intensity nextLightsource
+            reflection = getReflection l pointOnObject object
+            adjustedAngle = 1 - (acos( (direction reflection) `dot` (direction objectToLightsource))/(pi))
+            invPrevIntensity = accIntensity/(2 - accIntensity)
+            newIntensity = (adjustedAngle* (intensity nextLightsource) + invPrevIntensity)/
+                            (adjustedAngle* (intensity nextLightsource)  + invPrevIntensity+2)
 
     checkBlocked :: Line -> [Shape] -> Bool
     checkBlocked objectToLightsource [] = False
     checkBlocked objectToLightsource (firstObject:otherObjects)
-        | doesIntersect && intersect > [0,0] = True
+        -- | null otherObjects = False
+        | doesIntersect && intersect > [-0.001] && intersect < [0.001] = True
         | otherwise = checkBlocked objectToLightsource otherObjects
         where
             intersect = intersections objectToLightsource firstObject

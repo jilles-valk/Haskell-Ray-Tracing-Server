@@ -16,7 +16,7 @@ var display = Vue.extend({
 });
 
 var controls = Vue.extend({
-  props: ["scene"],
+  props: ["scene", "sceneNumText"],
   template: `
   <div>
   <div id="objectContainer" v-for="(object, index) in scene.objects">{{object.x}}
@@ -75,10 +75,20 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
 <div id="instructions">
   You can move through the scene using the "wasd" keys, you can look around using "ijkl" and "uo" are for rolling left and right.
 </div>
+<div id="loadSave">
+  Select scene:
+  <input id="sceneNum" type="number" v-on:change="emitChangeSaveScene" step="1" min="0" value="0"/>
+  <button id="loadScene" v-on:click="emitChangeSaveScene">Load</button>
+  <button id="saveScene" v-on:click="emitChangeSaveScene">Save</button>
+  <div id="storageText">
+    {{sceneNumText}}
+  </div>
+</div>
 </div>  
     `,
   created: function () {
-    window.addEventListener('keydown', this.onkey)
+    window.addEventListener('keydown', this.onkey);
+    this.$emit("change-save-scene","sceneNum", 0);
   },
   methods: {
     changeObject: function(event) {
@@ -127,6 +137,11 @@ z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitC
         this.$emit("change-view-res", event.target.id, event.target.value);
       }
     },
+    emitChangeSaveScene: function(event) {
+      if (event){
+        this.$emit("change-save-scene", event.target.id, document.getElementById("sceneNum").value);
+      }
+    },
     onkey: function(event) {
       console.log(event.code);
       switch (event.code) {
@@ -173,13 +188,13 @@ const app = new Vue({
     return {
       image: undefined,
       scene: { objects: [],
-               lightsources: [{location:{x: -3, y: 0, z: 0}, intensity: 0.5}],
+               lightsources: [{location:{x: -3, y: 0, z: 0}, intensity: 1}],
         view: { position: {x: 0, y:0, z:5}, forwardVector: {xv:0, yv:0, zv:-1}, 
           upVector: {xv:0, yv:1, zv:0}, horPixels:320, verPixels:180, fieldOfView: 0.25*Math.PI} },
       status: "not connected",
       WS: undefined,
-      test: "a"
-
+      test: "a",
+      sceneNumText: ""
     };
   },
   created: function() {
@@ -309,9 +324,40 @@ const app = new Vue({
       this.scene.view.horPixels = parseFloat(value)
       this.scene.view.verPixels = parseInt(parseFloat(value)*(9/16))
       this.sendScene();
-    }
-  }
-});
+    },
+    changeSaveScene (id, value) {
+      var tempScenes = [];
+      switch (id) {
+        case ("saveScene"):
+          if (localStorage.savedScenes){
+            tempScenes = JSON.parse(localStorage.savedScenes);
+            tempScenes[value] = this.scene;
+            localStorage.savedScenes = JSON.stringify(tempScenes);
+          }
+          else {
+            localStorage.savedScenes = JSON.stringify([this.scene]);
+          }
+          break;
+        case ("loadScene"):
+          if (localStorage.savedScenes){
+            tempScenes = JSON.parse(localStorage.savedScenes);
+            if (tempScenes.length > value && tempScenes[value] != null){
+              this.scene = tempScenes[value];
+              this.sendScene();
+            }
+          }
+          break;
+        case ("sceneNum"):
+          tempScenes = JSON.parse(localStorage.savedScenes);
+          if (tempScenes.length > value && tempScenes[value] != null){
+            this.sceneNumText = "Scene " + value + " has been set, be carefull when overwriting.";
+          }
+          else {
+            this.sceneNumText = "Scene " + value + " has not been set, don't worry about overwriting anything.";
+          }
+          break;
+        }
+}}});
 
 function rotate (v, k, theta) {
   return (add(

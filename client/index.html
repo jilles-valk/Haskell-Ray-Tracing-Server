@@ -32,7 +32,9 @@
             v-on:change-view-fov="changeViewFOV"
             v-on:change-view-res="changeViewRes"
             v-on:change-lightsource="changeLightsource"
-            v-bind:scene="scene">
+            v-on:change-save-scene="changeSaveScene"
+            v-bind:scene="scene"
+            v-bind:scene-num-text="sceneNumText">
         </controls>
     </div>
 
