@@ -42,7 +42,7 @@ where
             (\deAcc x y -> generatePixel deAcc objectList lightsourceList) lines
             (fromInteger hPixels) (fromInteger vPixels)
         -- = encodePng $ snd $ generateFoldImage 
-        --     (\deAcc x y -> takeFirst deAcc) allPixels
+        --     (\deAcc x y -> takeFirst deAcc) (firstHalf `par` secondHalf `pseq` (firstHalf ++ secondHalf))
         --     (hPixels) (vPixels)
         where 
             scene = parseScene inputJSON
@@ -59,6 +59,7 @@ where
             -- allPixels = firstHalf ++ secondHalf
 
     takeFirst :: [PixelRGB8] -> ([PixelRGB8], PixelRGB8)
+    takeFirst [] = ([], PixelRGB8 0 0 0)
     takeFirst (firstPixel:otherPixels) = (otherPixels, firstPixel)
     
     colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
@@ -86,16 +87,16 @@ where
             reflection = getReflection l pointOnObject object
             angleReflectionLightsource = acos((direction reflection) `dot` (direction objectToLightsource))
             angleLightsourceCamera = pi - acos((direction objectToLightsource) `dot` (timesV (direction l) (-1)))
-            lightedSide = angleReflectionLightsource < angleLightsourceCamera
+            lightedSide = angleReflectionLightsource < (angleLightsourceCamera+0.01)
             adjustedAngle = (angleLightsourceCamera - angleReflectionLightsource)/angleLightsourceCamera
-            invPrevIntensity = accIntensity/(2 - accIntensity)
+            invPrevIntensity = -((2*accIntensity)/(accIntensity - 1))
             newIntensity = (adjustedAngle* (intensity nextLightsource) + invPrevIntensity)/
                             (adjustedAngle* (intensity nextLightsource)  + invPrevIntensity+2)
 
     checkBlocked :: Line -> [Shape] -> Bool
     checkBlocked objectToLightsource [] = False
     checkBlocked objectToLightsource (firstObject:otherObjects)
-        | doesIntersect && intersect > [-0.01] && intersect < [0.01] = True
+        | doesIntersect && ((intersect > [-0.1] && intersect < [0.1]) || intersect > [0.1]) = True
         | otherwise = checkBlocked objectToLightsource otherObjects
         where
             intersect = intersections objectToLightsource firstObject
@@ -188,18 +189,35 @@ where
             let lines = generateLines view
             return $! lines
 
-    renderTest size isRecursive
+    force :: [a] -> ()
+    force xs = go xs `pseq` ()
+        where 
+            go (_:xs) = go xs
+            go [] = 1
+
+    renderTest size isRecursive isParallel
+        | not isRecursive && isParallel = writePng "img1.png" $ snd $ generateFoldImage 
+            (\deAcc x y -> takeFirst deAcc) 
+            ((force firstHalf `par` (force secondHalf `pseq` (firstHalf ++ secondHalf))))
+            (hPixels) (vPixels)
         | isRecursive =  writePng "img1.png" $ snd (generateFoldImage 
             (\deAcc x y -> generatePixel deAcc sphere lightsourceList) linesRec
-            (fromInteger hPixels) (fromInteger vPixels))
+            ( hPixels) ( vPixels))
         | otherwise =  writePng "img1.png" $ snd (generateFoldImage 
             (\deAcc x y -> generatePixel deAcc sphere lightsourceList) linesListComprehension
-            (fromInteger hPixels) (fromInteger vPixels))
+            ( hPixels) ( vPixels))
         where 
             sphere = [Sphere (Point 0 0 0) 1]
             lightsourceList = [Lightsource (Point 0 0 3) 0.5]
-            hPixels = size
-            vPixels = size
-            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) hPixels vPixels (0.5*pi)
+            hPixels = fromInteger size
+            vPixels = fromInteger size
+            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) size size (0.5*pi)
+            view2 = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) 
+                (size `div` 2) (size `div` 2) (0.5*pi)
             linesRec = generateLines2 view
             linesListComprehension = generateLines view
+            linesInChunks = chunksOf ( ((hPixels*vPixels) `div` 2)) linesListComprehension
+            lines1 = generateLines view2
+            lines2 = generateLines view2
+            firstHalf = (createPixels [] (lines1) sphere lightsourceList)
+            secondHalf = (createPixels [] (lines2) sphere lightsourceList)

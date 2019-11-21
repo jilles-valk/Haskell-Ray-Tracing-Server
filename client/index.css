@@ -7,7 +7,9 @@ body {
     left: 0;
     width: 100vw;
     height: 5vh;
-    background-color: grey;
+    background-image: linear-gradient(to bottom,black 1%, 
+        grey 90%,black);
+
     text-align: center;
     color: white;
     font-size: 2rem;
@@ -26,6 +28,8 @@ body {
     left: 0vw;;
     width: 75vw;
     text-align: center;
+    border: solid;
+    border-color: grey;
 }
 
 #controls {

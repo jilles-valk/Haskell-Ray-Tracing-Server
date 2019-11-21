@@ -39,6 +39,7 @@ dependencies:
 - hspec
 - split
 - parallel
+- monads-tf
 
 library:
   source-dirs: src
@@ -50,9 +51,8 @@ executables:
     ghc-options:
     - -threaded
     - -rtsopts
-    - -with-rtsopts=-N
+    - -with-rtsopts=-N8
     - -O
-    - -fprof-auto
     dependencies:
     - RTS
   pTest-exe:

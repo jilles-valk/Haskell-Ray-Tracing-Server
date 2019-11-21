@@ -19,15 +19,20 @@ main = defaultMain [
     --            , bench "10000"  $ whnf makeView 10000
     --         --    , bench "1000" $ whnf renderImage 1000
             --    ]
-    bgroup "renderImgRecursive" [ bench "100"  $ nfIO  (renderImage 100 True)
-               , bench "200"  $ nfIO (renderImage 200 True)
-               , bench "300"  $ nfIO (renderImage 300 True)
-               , bench "1000" $ nfIO (renderImage 1000 True)
+    -- bgroup "renderImgRecursive" [ bench "100"  $ nfIO  (renderImage 100 True)
+    --            , bench "200"  $ nfIO (renderImage 200 True)
+    --            , bench "300"  $ nfIO (renderImage 300 True)
+    --            , bench "1000" $ nfIO (renderImage 1000 True)
+    --            ],
+    bgroup "renderImgParallel" [ bench "100"  $ nfIO  (renderImage 300 False True)
+               , bench "200"  $ nfIO (renderImage 600 False True)
+            --    , bench "300"  $ nfIO (renderImage 300 False True)
+            --    , bench "1000" $ nfIO (renderImage 1000 False True)
                ],
-    bgroup "renderImg" [ bench "100"  $ nfIO  (renderImage 100 False)
-               , bench "200"  $ nfIO (renderImage 200 False)
-               , bench "300"  $ nfIO (renderImage 300 False)
-               , bench "1000" $ nfIO (renderImage 1000 False)
+    bgroup "renderImg" [ bench "100"  $ nfIO  (renderImage 300 False False)
+               , bench "200"  $ nfIO (renderImage 600 False False)
+            --    , bench "300"  $ nfIO (renderImage 300 False False)
+            --    , bench "1000" $ nfIO (renderImage 1000 False False)
                ]
   ]
 
@@ -36,9 +41,9 @@ writeImg size = do
     writePng "C:\\Users\\jvalk\\Haskell\\RTS\\img.png" $ generateImage pixelRenderer size size
     where pixelRenderer x y = PixelRGB8 (fromIntegral x) (fromIntegral y) 128
 
-renderImage size isRecursive =  do
+renderImage size isRecursive isParallel =  do
     -- savePngImage "C:\\Users\\jvalk\\Haskell\\RTS\\img1.png" ( renderTest size)
-    renderTest size isRecursive
+    renderTest size isRecursive isParallel
 
 makeView size = do
     let a = (makeViewTest size) !! (fromInteger size -1) !! (fromInteger size - 1)
