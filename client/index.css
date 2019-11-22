@@ -18,9 +18,9 @@ body {
 #display {
     position: fixed;
     top: 5vh;
-    left: 15vw;;
+    left: 0vw;
     width: 70vw;
-    height: 70vh;
+    height: 95vh;
     text-align: center;
 }
 #canvas {
@@ -30,6 +30,13 @@ body {
     text-align: center;
     border: solid;
     border-color: grey;
+}
+
+#displayInfo{
+    position: absolute;
+    bottom:0;
+    left: 0vw;
+    color: white;
 }
 
 #controls {

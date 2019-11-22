@@ -21,7 +21,8 @@
         <display id="display" 
             v-bind:image="image" 
             v-bind:view="scene.view"
-            v-bind:test="test">
+            v-bind:test="test"
+            v-bind:time-send-to-recieve="timeSendToRecieve">
         </display>
         <controls id="controls" 
             v-on:change-this-object="changeObject" 
@@ -33,8 +34,10 @@
             v-on:change-view-res="changeViewRes"
             v-on:change-lightsource="changeLightsource"
             v-on:change-save-scene="changeSaveScene"
+            v-on:send-scene="sendScene"
             v-bind:scene="scene"
-            v-bind:scene-num-text="sceneNumText">
+            v-bind:scene-num-text="sceneNumText"
+            v-bind:time-send-to-recieve="timeSendToRecieve">
         </controls>
     </div>
 

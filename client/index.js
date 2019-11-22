@@ -1,9 +1,9 @@
 var display = Vue.extend({
-  props: ["image", "test", "view"],
+  props: ["image", "test", "view", "timeSendToRecieve"],
   template: `
         <div>{{view.horPixels}}
             <canvas id="canvas" ref="canvas" width="1920px" height="1080px"></canvas>
-            <div>Scene: {{test}}</div>
+            <div id="displayInfo">Time taken to render image: {{timeSendToRecieve}}ms.</div>
         </div>
         `,
   watch: {
@@ -16,7 +16,7 @@ var display = Vue.extend({
 });
 
 var controls = Vue.extend({
-  props: ["scene", "sceneNumText"],
+  props: ["scene", "sceneNumText", "timeSendToRecieve"],
   template: `
   <div>
   <div id="objectsAndLightsources">
@@ -94,8 +94,7 @@ var controls = Vue.extend({
       </div>
       <div id="instructions">
           You can move through the scene using the "wasd" keys, you can look around using "ijkl" and "uo" are for
-          rolling
-          left and right.
+          rolling left and right. {{timeSendToRecieve}}
       </div>
       <div id="loadSave">
           Select scene:
@@ -109,16 +108,30 @@ var controls = Vue.extend({
   </div>
 </div>
     `,
+    data: function() {
+      return {
+          rollLeft: false,
+          turnUp: false,
+          rollRight: false,
+          turnLeft: false,
+          turnDown: false,
+          turnRight: false,
+          moveForward: false,
+          moveLeft: false,
+          moveBackward: false,
+          moveRight: false,
+          noCommands: true
+    }},
   created: function () {
-    window.addEventListener('keydown', this.onkey);
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
+    setInterval(this.collectKeys, 17);
+    this.emitSendScene();
     this.$emit("change-save-scene","sceneNum", 0);
   },
   methods: {
     changeObject: function(event) {
       if (event) {
-        console.log(
-          event.target.id + event.target.className + event.target.value
-        );
         this.$emit(
           "change-this-object",
           event.target.id,
@@ -165,42 +178,134 @@ var controls = Vue.extend({
         this.$emit("change-save-scene", event.target.id, document.getElementById("sceneNum").value);
       }
     },
-    onkey: function(event) {
-      console.log(event.code);
+    onKeyDown: function(event) {
       switch (event.code) {
         case "KeyU":
-          this.$emit("change-view-orientation", "rollLeft");
+          this.rollLeft = true;
           break;
         case "KeyI":
-          this.$emit("change-view-orientation", "turnUp");
+          this.turnUp = true;
           break;
         case "KeyO":
-          this.$emit("change-view-orientation", "rollRight");
+          this.rollRight = true;
           break;
         case "KeyJ":
-          this.$emit("change-view-orientation", "turnLeft");
+          this.turnLeft = true;
           break;
         case "KeyK":
-          this.$emit("change-view-orientation", "turnDown");
+          this.turnDown = true;
           break;
         case "KeyL":
-          this.$emit("change-view-orientation", "turnRight");
+          this.turnRight = true;
           break;
         case "KeyW":
-          this.$emit("change-view-orientation", "moveForward");
+          this.moveForward = true;
           break;
         case "KeyA":
-          this.$emit("change-view-orientation", "moveLeft");
+          this.moveLeft = true;
           break;
         case "KeyS":
-          this.$emit("change-view-orientation", "moveBackward");
+          this.moveBackward = true;
           break;
         case "KeyD":
-          this.$emit("change-view-orientation", "moveRight");
+          this.moveRight = true;
           break;
       }
+    },
+    onKeyUp: function(event) {
+      setTimeout(this.removeCommands(), 10);
+    },
+    removeCommands: function(){
+      switch (event.code) {
+        case "KeyU":
+          this.rollLeft = false;
+          break;
+        case "KeyI":
+          this.turnUp = false;
+          break;
+        case "KeyO":
+          this.rollRight = false;
+          break;
+        case "KeyJ":
+          this.turnLeft = false;
+          break;
+        case "KeyK":
+          this.turnDown = false;
+          break;
+        case "KeyL":
+          this.turnRight = false;
+          break;
+        case "KeyW":
+          this.moveForward = false;
+          break;
+        case "KeyA":
+          this.moveLeft = false;
+          break;
+        case "KeyS":
+          this.moveBackward = false;
+          break;
+        case "KeyD":
+          this.moveRight = false;
+          break;
+      }
+    },
+    collectKeys: function() {
+        if (this.rollLeft){
+          this.$emit("change-view-orientation", "rollLeft");
+          this.noCommands = false;
+        } 
+        if (this.turnUp){
+          this.$emit("change-view-orientation", "turnUp");
+          this.noCommands = false;
+        } 
+        if (this.rollRight){
+          this.$emit("change-view-orientation", "rollRight");
+          this.noCommands = false;
+        } 
+        if (this.turnLeft){
+          this.$emit("change-view-orientation", "turnLeft");
+          this.noCommands = false;
+        } 
+        if (this.turnDown){
+          this.$emit("change-view-orientation", "turnDown");
+          this.noCommands = false;
+        } 
+        if (this.turnRight){
+          this.$emit("change-view-orientation", "turnRight");
+          this.noCommands = false;
+        } 
+        if (this.moveForward){
+          this.$emit("change-view-orientation", "moveForward");
+          this.noCommands = false;
+        } 
+        if (this.moveLeft){
+          this.$emit("change-view-orientation", "moveLeft");
+          this.noCommands = false;
+        } 
+        if (this.moveBackward){
+          this.$emit("change-view-orientation", "moveBackward");
+          this.noCommands = false;
+        } 
+        if (this.moveRight){
+          this.$emit("change-view-orientation", "moveRight");
+          this.noCommands = false;
+        }
+    },
+    emitSendScene: function() {
+      var interval = 17;
+        if (this.$props.timeSendToRecieve > interval){
+          interval = this.$props.timeSendToRecieve;
+        }
+        if (!this.noCommands){
+          this.$emit("send-scene");
+          this.noCommands = true;
+          setTimeout(this.emitSendScene, interval*2);
+        }
+        else{
+          setTimeout(this.emitSendScene, 17);
+        }
     }
-  }
+  },
 });
 
 
@@ -217,7 +322,9 @@ const app = new Vue({
       status: "not connected",
       WS: undefined,
       test: "a",
-      sceneNumText: ""
+      sceneNumText: "",
+      startSendTime: 0,
+      timeSendToRecieve: 100
     };
   },
   created: function() {
@@ -232,7 +339,8 @@ const app = new Vue({
         this.WS = WS;
         this.status = "connected";
         this.WS.onmessage = event => {
-          // not: function(event){
+          var d = new Date();
+          this.timeSendToRecieve = d.getTime() - this.startSendTime;
           image = new Image();
           var urlObject = URL.createObjectURL(event.data);
           image.src = urlObject;
@@ -273,6 +381,8 @@ const app = new Vue({
     sendScene() {
       WS.send(JSON.stringify(this.scene));
       this.test = JSON.stringify(this.scene);
+      var d = new Date();
+      this.startSendTime = d.getTime();
     },
     changeView(id, value){
       this.scene.view.position[id] = parseFloat(value);
@@ -283,8 +393,8 @@ const app = new Vue({
       this.sendScene();
     },
     changeViewOrientation (command) {
-      let increment = 0.025*Math.PI;
-      let moveIncrement = 0.1;
+      let increment = 0.0025*Math.PI;
+      let moveIncrement = 0.01;
       let rightVector = 
             rotate(this.scene.view.forwardVector, this.scene.view.upVector, 0.5*Math.PI);
       switch (command) {
@@ -337,7 +447,6 @@ const app = new Vue({
               times(rightVector, -moveIncrement));
           break;
       };
-      this.sendScene();
     },
     changeViewFOV (value) {
       this.scene.view.fieldOfView = value*Math.PI/180;
@@ -427,4 +536,27 @@ function dot (a, b) {
   return ((a.xv*b.xv) + 
           (a.yv*b.yv) + 
           (a.zv*b.zv));
+}
+
+function removeFromArray (array, toRemove) {
+  for (var i=0; i < array.length; i++) {
+    if (array[i] == toRemove){
+      return array.splice(i,1);
+    }
+  }
+  return array;
+}
+
+function addToArray (array, toAdd) {
+  var canAdd = true;
+  for (var i=0; i < array.length; i++) {
+    if (array[i] == toAdd){
+      canAdd = false;
+      break;
+    }
+  }
+  if (canAdd){
+    array.push(toAdd);
+  }
+  return array;
 }
