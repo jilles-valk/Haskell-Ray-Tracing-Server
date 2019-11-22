@@ -49,7 +49,7 @@ var controls = Vue.extend({
                       :value="object.location.y" />
                   z:<input :id="index" class="z" type="number" step=".1" v-on:change="emitChangeLightsource"
                       :value="object.location.z" />
-                  intensity:<input :id="index" class="intensity" type="number" step=".1"
+                  I:<input :id="index" class="intensity" type="number" step=".1"
                       v-on:change="emitChangeLightsource" :value="object.intensity" />
                   <button :id="index" class="remove" v-on:click="emitChangeLightsource">Delete</button>
               </div>
@@ -94,7 +94,7 @@ var controls = Vue.extend({
       </div>
       <div id="instructions">
           You can move through the scene using the "wasd" keys, you can look around using "ijkl" and "uo" are for
-          rolling left and right. {{timeSendToRecieve}}
+          rolling left and right.
       </div>
       <div id="loadSave">
           Select scene:
@@ -485,7 +485,7 @@ const app = new Vue({
             this.sceneNumText = "Scene " + value + " has been set, be carefull when overwriting.";
           }
           else {
-            this.sceneNumText = "Scene " + value + " has not been set, don't worry about overwriting anything.";
+            this.sceneNumText = "Scene " + value + " has not been set yet.";
           }
           break;
         }

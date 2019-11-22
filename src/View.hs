@@ -4,6 +4,7 @@ module View
     View (..), 
     generateLines,
     generateLines2,
+    generateLines3,
     generateLinesHelper
 ) where 
     import GHC.Generics
@@ -43,6 +44,37 @@ module View
                 (rotateV vUp vNormal (topAngle))) distCenterCorner
             leftLine =  Line topLeft (Vector (-xUp) (-yUp) (-zUp))
             rightLine = Line topRight (Vector (-xUp) (-yUp) (-zUp))
+            viewPoint = getPointOnLine (Line centerPoint (Vector (-xv) (-yv) (-zv))) 1.0
+
+            theLines = [lineFromPoints viewPoint (getPointOnLine (lineFromPoints 
+                (getPointOnLine leftLine ((x*width)/(fromInteger (verPixels - 1)))) 
+                (getPointOnLine rightLine ((x*width)/(fromInteger (verPixels - 1))))) 
+                ((y*height)/(fromInteger (horPixels - 1))) ) |
+                x <- [0.0.. fromInteger (verPixels - 1)], y <- [0.0.. fromInteger (horPixels - 1)]]
+    
+    generateLines3 :: View -> Float -> Float -> [Line]
+    generateLines3 (View (Point xp yp zp) (Vector xv yv zv) (Vector xUp yUp zUp) horPixels vPixels fieldOfView) part numParts
+        | fieldOfView == 0 = [Line centerPoint (Vector xv yv zv)]
+        | otherwise = theLines
+        where
+            verPixels = toInteger $ round ((fromInteger vPixels)/numParts)
+            -- verPixels = 2
+            centerPoint = Point xp yp zp
+            vNormal = Vector xv yv zv
+            vUp = Vector xUp yUp zUp
+            height = 2*tan(fieldOfView/2)
+            width = height/((fromInteger horPixels)/(fromInteger verPixels))
+            distCenterCorner = sqrt((height/2)^2 + (width/2)^2)
+            topAngle = atan(height/width)
+            topLeftWhole = getPointOnLine (Line centerPoint 
+                (rotateV vUp vNormal (2*pi - topAngle))) distCenterCorner
+            topRightWhole = getPointOnLine (Line centerPoint 
+                (rotateV vUp vNormal (topAngle))) distCenterCorner
+            down = (Vector (-xUp) (-yUp) (-zUp))
+            leftLineWhole =  Line topLeftWhole (Vector (-xUp) (-yUp) (-zUp))
+            rightLineWhole = Line topRightWhole (Vector (-xUp) (-yUp) (-zUp))
+            leftLine = Line (getPointOnLine leftLineWhole ((part-1)*numParts*height)) down
+            rightLine = Line (getPointOnLine rightLineWhole ((part-1)*numParts*height)) down
             viewPoint = getPointOnLine (Line centerPoint (Vector (-xv) (-yv) (-zv))) 1.0
 
             theLines = [lineFromPoints viewPoint (getPointOnLine (lineFromPoints 

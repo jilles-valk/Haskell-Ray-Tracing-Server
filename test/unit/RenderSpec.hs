@@ -45,25 +45,25 @@ module RenderSpec where
         describe "addIntensity" $ do
             let line = Line (Point 0 0 5) (Vector 0 0.1 (-1))
             it "one object" $
-                (fst (addIntensity 0 line (Point 0 0 1) (Sphere (Point 0 0 0) 1)
+                ((addIntensity 0 line (Point 0 0 1) (Sphere (Point 0 0 0) 1)
                     [(Sphere (Point 0 1 0) 1)]
                     [Lightsource (Point (0) 0 1) 0.5]))
                 `shouldBe`
                 0.5
             it "two objects" $
-                (fst (addIntensity 0 line (Point (-1) 0 0) (Sphere (Point 0 0 0) 1)
+                ((addIntensity 0 line (Point (-1) 0 0) (Sphere (Point 0 0 0) 1)
                     [(Sphere (Point 0 0 0) 1), (Sphere (Point 0 1 0) 1)]
                     [Lightsource (Point (-3) 0 0) 0.5]))
                 `shouldBe`
                 0.5
             it "two lightsources" $
-                (fst (addIntensity 0 line (Point (-1) 0 0) (Sphere (Point 0 0 0) 1)
+                ((addIntensity 0 line (Point (-1) 0 0) (Sphere (Point 0 0 0) 1)
                     [(Sphere (Point 0 0 0) 1), (Sphere (Point 0 1 0) 1)]
                     [Lightsource (Point (-3) 0 0) 0.5, Lightsource (Point (-3) 0 0) 0.5]))
                 `shouldBe`
                 0.5
             it "no objects" $
-                (fst (addIntensity 0 line (Point (-1) 0 0) (Sphere (Point 0 0 0) 1)
+                ((addIntensity 0 line (Point (-1) 0 0) (Sphere (Point 0 0 0) 1)
                     []
                     [Lightsource (Point (-3) 0 0) 0.5, Lightsource (Point (-3) 0 0) 0.5]))
                 `shouldBe`

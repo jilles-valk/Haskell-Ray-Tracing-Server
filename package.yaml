@@ -62,7 +62,9 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    - -O
+    - -O2
+    - -optc-O3
+    - -fexcess-precision
     dependencies:
     - RTS
 

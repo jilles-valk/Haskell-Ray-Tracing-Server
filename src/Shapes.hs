@@ -102,8 +102,9 @@ module Shapes
         Point (xp+xv*t) (yp+yv*t) (zp+zv*t)
 
     lineFromPoints :: Point -> Point -> Line
-    lineFromPoints (Point xa ya za) (Point xb yb zb) = 
-        Line (Point xa ya za) (toUnitVector ((Vector xb yb zb) `subtractV` (Vector xa ya za)))
+    lineFromPoints (Point xa ya za) (Point xb yb zb) 
+        | xa == xb && ya == yb && za == zb = Line (Point xa ya za) (Vector 0 0 0)
+        | otherwise = Line (Point xa ya za) (toUnitVector ((Vector xb yb zb) `subtractV` (Vector xa ya za)))
 
     intersections :: Line -> Shape -> [Float]
     intersections (Line (Point xp yp zp) vp) (Sphere (Point xs ys zs) r)

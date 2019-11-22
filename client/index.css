@@ -6,27 +6,28 @@ body {
     top: 0;
     left: 0;
     width: 100vw;
-    height: 5vh;
+    height: 7vh;
     background-image: linear-gradient(to bottom,black 1%, 
         grey 90%,black);
 
     text-align: center;
     color: white;
-    font-size: 2rem;
+    font-size: 2.5rem;
+    line-height: 7vh;
 }
 
 #display {
     position: fixed;
-    top: 5vh;
+    top: 7vh;
     left: 0vw;
-    width: 70vw;
-    height: 95vh;
+    width: 80vw;
+    height: 93vh;
     text-align: center;
 }
 #canvas {
     position: fixed;
     left: 0vw;;
-    width: 75vw;
+    width: 80vw;
     text-align: center;
     border: solid;
     border-color: grey;
@@ -42,10 +43,10 @@ body {
 #controls {
     background-color: white;
     position: fixed;
-    top: 5vh;
+    top: 7vh;
     right: 0;
     height: 95vh;
-    width: 25vw;
+    width: 20vw;
 }
 
 #objectsAndLightsources {
@@ -91,7 +92,7 @@ body {
 }
 
 .x, .y, .z, .r, .intensity {
-    width: 3vw;
+    width: 2vw;
 }
 
 #move {

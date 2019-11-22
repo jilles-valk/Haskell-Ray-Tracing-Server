@@ -7,6 +7,8 @@ module ViewSpec where
     spec :: Spec
     spec = do
          let view33 = View (Point 0 0 0) (Vector 0 0 (-1)) (Vector 0 1 0) 3 3 (0.5*pi)
+         let view99 = View (Point 0 0 0) (Vector 0 0 (-1)) (Vector 0 1 0) 9 9 (0.5*pi)
+         let view44 = View (Point 0 0 0) (Vector 0 0 (-1)) (Vector 0 1 0) 4 4 (0.5*pi)
          describe "test square viewTemp" $ do   
             it "returns a line through the top left corner of the view" $
                (generateLines view33 !! 0)
@@ -44,24 +46,6 @@ module ViewSpec where
                (generateLines view33 !! 8)
                `shouldBe`
                (Line (Point 0.0 0.0 1.0) (Vector 0.5773504 (-0.5773502) (-0.5773502)))
-         describe "test square view" $ do
-            let view32 = View (Point 0 0 0) (Vector 0 0 (-1)) (Vector 0 1 0) 3 2 (0.5*pi)
-            it "returns a line through the top left corner of the view" $
-               (generateLines view32 !! 0)
-               `shouldBe`
-               (Line (Point 0.0 0.0 1.0) (Vector (-0.5773501) 0.5773505 (-0.57735026)))
-            it "returns a line through the top middle of the view" $
-               (generateLines view32 !! 1)
-               `shouldBe`
-               (Line (Point 0.0 0.0 1.0) (Vector 2.5288108e-7 0.7071068 (-0.7071067)))
-            it "returns a line through the top right corner of the view" $
-               (generateLines view32 !! 2)
-               `shouldBe`
-               (Line (Point 0.0 0.0 1.0) (Vector 0.57735044 0.5773502 (-0.57735026)))
-            it "returns a line through the middle left of the view" $
-               (generateLines view32 !! 3)
-               `shouldBe`
-               (Line (Point 0.0 0.0 1.0) (Vector (-0.70710665) 2.5288114e-7 (-0.7071069)))
          describe "test generateLinesHelper" $ do
             let startLines = [Line (Point 0 0 5) (Vector (0.19611613) 0 (-0.9805807))]
             it "one hor pixel" $
@@ -104,6 +88,19 @@ module ViewSpec where
                   (Point 1 0 0) (Point 1 0 0) 3 2 1 (startLines)) !! 3)
                `shouldBe`
                (Line (Point 0 0 5) (Vector (-0.19611613) 0 (-0.9805807)))
+         describe "generate some of the lines" $ do
+            it "test length1" $
+               (length $ generateLines3 view99 1 3)
+               `shouldBe`
+               (27)
+            it "test length2" $
+               (length $ generateLines3 view99 2 3)
+               `shouldBe`
+               (27)
+            it "test length3" $
+               (length $ generateLines3 view99 3 3)
+               `shouldBe`
+               (27)
             
     
         

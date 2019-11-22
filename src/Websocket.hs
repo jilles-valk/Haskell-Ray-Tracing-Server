@@ -22,11 +22,10 @@ module Websocket where
             -- -- print $ typeOf msg
             -- msg:msgQue
             -- putStrLn $ show msgQue
-        forkIO (sendImage conn msg)
+        sendImage conn (render msg)
 
     sendImage :: WS.Connection -> BL.ByteString -> IO ()
-    sendImage conn msg = do 
+    sendImage conn img = do 
         -- render "1"
         -- img  <- BL.readFile "img.jpg"
-        let img = render msg
         WS.sendBinaryData conn img

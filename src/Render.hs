@@ -198,7 +198,7 @@ where
     renderTest size isRecursive isParallel
         | not isRecursive && isParallel = writePng "img1.png" $ snd $ generateFoldImage 
             (\deAcc x y -> takeFirst deAcc) 
-            ((force firstHalf `par` (force secondHalf `pseq` (firstHalf ++ secondHalf))))
+            allPixels
             (hPixels) (vPixels)
         | isRecursive =  writePng "img1.png" $ snd (generateFoldImage 
             (\deAcc x y -> generatePixel deAcc sphere lightsourceList) linesRec
@@ -219,5 +219,8 @@ where
             linesInChunks = chunksOf ( ((hPixels*vPixels) `div` 2)) linesListComprehension
             lines1 = generateLines view2
             lines2 = generateLines view2
-            firstHalf = (createPixels [] (lines1) sphere lightsourceList)
-            secondHalf = (createPixels [] (lines2) sphere lightsourceList)
+            lines3a = generateLines3 view 1 2
+            lines3b = generateLines3 view 2 2
+            firstHalf = (createPixels [] (lines3a) sphere lightsourceList)
+            secondHalf = (createPixels [] (lines3b) sphere lightsourceList)
+            allPixels = lines3a `seq` (lines3b `seq` (( firstHalf `par` ( secondHalf `pseq` (firstHalf ++ secondHalf)))))

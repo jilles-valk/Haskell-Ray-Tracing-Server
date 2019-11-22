@@ -19,18 +19,18 @@ main = defaultMain [
     --            , bench "10000"  $ whnf makeView 10000
     --         --    , bench "1000" $ whnf renderImage 1000
             --    ]
-    -- bgroup "renderImgRecursive" [ bench "100"  $ nfIO  (renderImage 100 True)
-    --            , bench "200"  $ nfIO (renderImage 200 True)
-    --            , bench "300"  $ nfIO (renderImage 300 True)
-    --            , bench "1000" $ nfIO (renderImage 1000 True)
-    --            ],
-    bgroup "renderImgParallel" [ bench "100"  $ nfIO  (renderImage 300 False True)
-               , bench "200"  $ nfIO (renderImage 600 False True)
+    -- bgroup "renderImgRecursive" [ bench "200"  $ nfIO  (renderImage 200 True False)
+    --            , bench "400"  $ nfIO (renderImage 400 True False)
+            --    , bench "300"  $ nfIO (renderImage 300 True)
+            --    , bench "1000" $ nfIO (renderImage 1000 True)
+            --    ],
+    bgroup "renderImgParallel" [ bench "200"  $ nfIO  (renderImage 200 False True)
+               , bench "400"  $ nfIO (renderImage 400 False True)
             --    , bench "300"  $ nfIO (renderImage 300 False True)
             --    , bench "1000" $ nfIO (renderImage 1000 False True)
                ],
-    bgroup "renderImg" [ bench "100"  $ nfIO  (renderImage 300 False False)
-               , bench "200"  $ nfIO (renderImage 600 False False)
+    bgroup "renderImg" [ bench "200"  $ nfIO  (renderImage 200 False False)
+               , bench "400"  $ nfIO (renderImage 400 False False)
             --    , bench "300"  $ nfIO (renderImage 300 False False)
             --    , bench "1000" $ nfIO (renderImage 1000 False False)
                ]
