@@ -1,3 +1,5 @@
+var websocketAddress = "ws://10.10.2.136:9000/";
+
 var display = Vue.extend({
   props: ["image", "test", "view", "timeSendToRecieve"],
   template: `
@@ -333,7 +335,7 @@ const app = new Vue({
 
   methods: {
     connect: function() {
-      WS = new WebSocket("ws://10.10.2.136:9000/");
+      WS = new WebSocket(websocketAddress);
       this.WS = WS;
       WS.onopen = () => {
         this.WS = WS;
