@@ -65,11 +65,11 @@ var controls = Vue.extend({
       <div id="camera">Camera controlls
           <div id="camera-pos">Position:
               x:<input id="positionInput" class="x" type="number" step=".1" v-on:change="emitChangeViewPosition"
-                  :value="scene.view.position.x.toFixed(2)" />
+                  :value="scene.view.position.x.toFixed(1)" />
               y:<input id="positionInput" class="y" type="number" step=".1" v-on:change="emitChangeViewPosition"
-                  :value="scene.view.position.y.toFixed(2)" />
+                  :value="scene.view.position.y.toFixed(1)" />
               z:<input id="positionInput" class="z" type="number" step=".1" v-on:change="emitChangeViewPosition"
-                  :value="scene.view.position.z.toFixed(2)" />
+                  :value="scene.view.position.z.toFixed(1)" />
           </div>
           <div id="camera-orientation">Orientation:
               <div id="top-orientation-buttons">
@@ -482,14 +482,16 @@ const app = new Vue({
           }
           break;
         case ("sceneNum"):
-          tempScenes = JSON.parse(localStorage.savedScenes);
-          if (tempScenes.length > value && tempScenes[value] != null){
-            this.sceneNumText = "Scene " + value + " has been set, be carefull when overwriting.";
+            if (localStorage.savedScenes){
+            tempScenes = JSON.parse(localStorage.savedScenes);
+            if (tempScenes.length > value && tempScenes[value] != null){
+              this.sceneNumText = "Scene " + value + " has been set, be carefull when overwriting.";
+            }
+            else {
+              this.sceneNumText = "Scene " + value + " has not been set yet.";
+            }
+            break;
           }
-          else {
-            this.sceneNumText = "Scene " + value + " has not been set yet.";
-          }
-          break;
         }
 }}});
 

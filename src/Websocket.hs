@@ -15,17 +15,8 @@ module Websocket where
     listenForScene :: WS.Connection -> IO b
     listenForScene conn = forever $ do
         msg <- WS.receiveData conn :: IO BL.ByteString
-        -- oldState <- get
-        -- put oldState
-        -- let oldStateWithMsg = msg:oldState
-            -- -- putStrLn $ show $ parseScene msg
-            -- -- print $ typeOf msg
-            -- msg:msgQue
-            -- putStrLn $ show msgQue
         sendImage conn (render msg)
 
     sendImage :: WS.Connection -> BL.ByteString -> IO ()
     sendImage conn img = do 
-        -- render "1"
-        -- img  <- BL.readFile "img.jpg"
         WS.sendBinaryData conn img

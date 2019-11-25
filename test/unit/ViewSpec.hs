@@ -46,61 +46,7 @@ module ViewSpec where
                (generateLines view33 !! 8)
                `shouldBe`
                (Line (Point 0.0 0.0 1.0) (Vector 0.5773504 (-0.5773502) (-0.5773502)))
-         describe "test generateLinesHelper" $ do
-            let startLines = [Line (Point 0 0 5) (Vector (0.19611613) 0 (-0.9805807))]
-            it "one hor pixel" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 1 1 1 ([Line (Point 0 0 5) (Vector (0.5) 0 (0.5))])) !! 0)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector (0.5) 0 (0.5)))
-            it "three hor pixels" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 3 1 1 (startLines)) !! 0)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector (-0.19611613) 0 (-0.9805807)))
-            it "three hor pixels second pixel" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 3 1 1 (startLines)) !! 1)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector (0.0) 0.0 (-1.0)))
-            it "three hor pixels third pixel" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 3 1 1 (startLines)) !! 2)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector (0.19611613) 0 (-0.9805807)))
-            it "three hor 2 ver pixels top right pixel" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 3 2 1 (startLines)) !! 0)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector (-0.19245009) (0.19245009) (-0.9622505)))
-            it "three hor 2 ver pixels top middle pixel" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 3 2 1 (startLines)) !! 1)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector 0 (0.19611613) (-0.9805807)))
-            it "three hor 2 ver pixels top left pixel" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 3 2 1 (startLines)) !! 2)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector (0.19245009) (0.19245009) (-0.9622505)))
-            it "three hor 2 ver pixels bottom left pixel" $
-               ((generateLinesHelper (Point 0 0 5) (Vector (-1) 0 0) (Vector 0 1 0) 
-                  (Point 1 0 0) (Point 1 0 0) 3 2 1 (startLines)) !! 3)
-               `shouldBe`
-               (Line (Point 0 0 5) (Vector (-0.19611613) 0 (-0.9805807)))
-         describe "generate some of the lines" $ do
-            it "test length1" $
-               (length $ generateLines3 view99 1 3)
-               `shouldBe`
-               (27)
-            it "test length2" $
-               (length $ generateLines3 view99 2 3)
-               `shouldBe`
-               (27)
-            it "test length3" $
-               (length $ generateLines3 view99 3 3)
-               `shouldBe`
-               (27)
+
             
     
         

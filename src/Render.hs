@@ -2,13 +2,7 @@
 module Render 
 (
     render,
-    renderTest,
-    makeViewTest,
-    colorAtPixel,
-    generatePixel,
     getNearestIntersectingObject,
-    parseScene,
-    addIntensity,
     checkBlocked
 )
 where 
@@ -17,13 +11,11 @@ where
     import Data.Aeson
     import Data.Aeson.Types
     import Shapes
-    import Data.Colour.SRGB
     import View
     import Codec.Picture
     import Data.Aeson
     import Data.Aeson.Types
     import Data.Maybe
-    import Data.List.Split
     import Control.Parallel
 
     data Scene = Scene {
@@ -41,9 +33,6 @@ where
         = encodePng $ snd $ generateFoldImage 
             (\deAcc x y -> generatePixel deAcc objectList lightsourceList) lines
             (fromInteger hPixels) (fromInteger vPixels)
-        -- = encodePng $ snd $ generateFoldImage 
-        --     (\deAcc x y -> takeFirst deAcc) (firstHalf `par` secondHalf `pseq` (firstHalf ++ secondHalf))
-        --     (hPixels) (vPixels)
         where 
             scene = parseScene inputJSON
             objectList = objects scene
@@ -52,11 +41,6 @@ where
             hPixels = fromInteger $ horPixels camera
             vPixels = fromInteger $ verPixels camera
             lines = generateLines camera
-            -- linesInChunks = chunksOf ( ((hPixels*vPixels) `div` 2)) lines
-            -- firstHalf = (createPixels [] (head linesInChunks) objectList lightsourceList)
-            -- secondHalf = (createPixels [] (linesInChunks !! 1) objectList lightsourceList)
-            -- allPixels =  firstHalf `par` secondHalf `pseq` (firstHalf ++ secondHalf)
-            -- allPixels = firstHalf ++ secondHalf
 
     takeFirst :: [PixelRGB8] -> ([PixelRGB8], PixelRGB8)
     takeFirst [] = ([], PixelRGB8 0 0 0)
@@ -64,7 +48,6 @@ where
     
     colorAtPixel ::Line -> (Maybe Shape, [Float]) -> [Shape] -> [Lightsource] -> Float
     colorAtPixel l object objectList lightsources
-        -- | isObject && angleReflectionLightsource > 0.5*pi = 0
         | isObject = intensityLightsource
         | otherwise = 0
         where 
@@ -182,45 +165,4 @@ where
                                     (Point 1 0 0) 1)
                             ]
                             [(Lightsource (Point 0 0 3) 0.5)])
-
-    -- renderTest :: Int -> Image
-    makeViewTest size = do 
-            let view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) size size (0.5*pi)
-            let lines = generateLines view
-            return $! lines
-
-    force :: [a] -> ()
-    force xs = go xs `pseq` ()
-        where 
-            go (_:xs) = go xs
-            go [] = 1
-
-    renderTest size isRecursive isParallel
-        | not isRecursive && isParallel = writePng "img1.png" $ snd $ generateFoldImage 
-            (\deAcc x y -> takeFirst deAcc) 
-            allPixels
-            (hPixels) (vPixels)
-        | isRecursive =  writePng "img1.png" $ snd (generateFoldImage 
-            (\deAcc x y -> generatePixel deAcc sphere lightsourceList) linesRec
-            ( hPixels) ( vPixels))
-        | otherwise =  writePng "img1.png" $ snd (generateFoldImage 
-            (\deAcc x y -> generatePixel deAcc sphere lightsourceList) linesListComprehension
-            ( hPixels) ( vPixels))
-        where 
-            sphere = [Sphere (Point 0 0 0) 1]
-            lightsourceList = [Lightsource (Point 0 0 3) 0.5]
-            hPixels = fromInteger size
-            vPixels = fromInteger size
-            view = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) size size (0.5*pi)
-            view2 = View (Point 0 0 3) (Vector 0 0 (-1)) (Vector 0 1 0) 
-                (size `div` 2) (size `div` 2) (0.5*pi)
-            linesRec = generateLines2 view
-            linesListComprehension = generateLines view
-            linesInChunks = chunksOf ( ((hPixels*vPixels) `div` 2)) linesListComprehension
-            lines1 = generateLines view2
-            lines2 = generateLines view2
-            lines3a = generateLines3 view 1 2
-            lines3b = generateLines3 view 2 2
-            firstHalf = (createPixels [] (lines3a) sphere lightsourceList)
-            secondHalf = (createPixels [] (lines3b) sphere lightsourceList)
-            allPixels = lines3a `seq` (lines3b `seq` (( firstHalf `par` ( secondHalf `pseq` (firstHalf ++ secondHalf)))))
+    

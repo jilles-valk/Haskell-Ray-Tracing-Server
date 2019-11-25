@@ -27,7 +27,7 @@ body {
 #canvas {
     position: fixed;
     left: 0vw;;
-    width: 80vw;
+    height: 87vh;
     text-align: center;
     border: solid;
     border-color: grey;
@@ -37,7 +37,11 @@ body {
     position: absolute;
     bottom:0;
     left: 0vw;
+    width: 80vw;
+    text-align: left;
     color: white;
+    border: solid;
+    border-color: grey;
 }
 
 #controls {
@@ -80,19 +84,16 @@ body {
     margin-top: 2vh;
 }
 
-
-
 #bottomControlls {
     position: absolute;
     bottom:0;
     height: 30vh;
     border: solid;
-    border-color:grey;
-    
+    border-color:grey; 
 }
 
-.x, .y, .z, .r, .intensity {
-    width: 2vw;
+.x, .y, .z, .r, .intensity, #sceneNum {
+    width: 3vw;
 }
 
 #move {
