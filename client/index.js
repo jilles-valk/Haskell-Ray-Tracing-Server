@@ -163,6 +163,7 @@ var controls = Vue.extend({
     emitChangeViewOrientation: function(event) {
       if (event){
         this.$emit("change-view-orientation", event.target.id);
+        this.noCommands = false;
       }
     },
     emitChangeViewFOV: function(event) {
@@ -301,7 +302,7 @@ var controls = Vue.extend({
         if (!this.noCommands){
           this.$emit("send-scene");
           this.noCommands = true;
-          setTimeout(this.emitSendScene, interval*2);
+          setTimeout(this.emitSendScene, interval*1.5);
         }
         else{
           setTimeout(this.emitSendScene, 17);
