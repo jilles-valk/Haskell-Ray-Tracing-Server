@@ -61,16 +61,15 @@ where
         addIntensity accIntensity l pointOnObject object [object] lightsourceList
     addIntensity accIntensity l pointOnObject object objectList (nextLightsource:lightsources)
         | null lightsources && blocked = accIntensity
-        | null lightsources && not blocked && lightedSide = newIntensity
-        | not blocked && lightedSide = addIntensity newIntensity l pointOnObject object objectList lightsources
+        | null lightsources && not blocked = newIntensity
+        | not blocked = addIntensity newIntensity l pointOnObject object objectList lightsources
         | otherwise = addIntensity accIntensity l pointOnObject object objectList lightsources
         where 
             objectToLightsource = lineFromPoints pointOnObject $ location nextLightsource
             blocked = checkBlocked objectToLightsource objectList
             reflection = getReflection l pointOnObject object
-            angleReflectionLightsource = acos((direction reflection) `dot` (direction objectToLightsource))
+            angleReflectionLightsource = acos((direction reflection) `dot` (direction objectToLightsource))-0.05
             angleLightsourceCamera = pi - acos((direction objectToLightsource) `dot` (timesV (direction l) (-1)))
-            lightedSide = angleReflectionLightsource < (angleLightsourceCamera+0.01)
             adjustedAngle = (angleLightsourceCamera - angleReflectionLightsource)/angleLightsourceCamera
             invPrevIntensity = -((2*accIntensity)/(accIntensity - 1))
             newIntensity = (adjustedAngle* (intensity nextLightsource) + invPrevIntensity)/
@@ -79,11 +78,11 @@ where
     checkBlocked :: Line -> [Shape] -> Bool
     checkBlocked objectToLightsource [] = False
     checkBlocked objectToLightsource (firstObject:otherObjects)
-        | doesIntersect && ((intersect > [-0.1] && intersect < [0.1]) || intersect > [0.1]) = True
+        | doesIntersect && ((intersect > [-0.01] && intersect < [0.01]) || intersect > [0.01]) = True
         | otherwise = checkBlocked objectToLightsource otherObjects
         where
             intersect = intersections objectToLightsource firstObject
-            doesIntersect = (null intersect) == False
+            doesIntersect = not $ null intersect
         
     getNearestIntersectingObject :: Line -> [Shape] -> (Maybe Shape, [Float])
     getNearestIntersectingObject _ [] = (Nothing, [])
